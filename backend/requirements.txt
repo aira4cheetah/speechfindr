@@ -6,4 +6,3 @@ groq
 python-dotenv
 python-multipart
 gTTS
-imageio-ffmpeg

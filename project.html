@@ -1,0 +1,2360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>SpeechFindr — App</title>
+<link rel="stylesheet" href="style.css"/>
+<style>
+body{overflow-x:hidden}
+
+/* ══ APP SHELL ══ */
+.app-wrap{
+  display:flex;flex-direction:column;
+  min-height:100vh;padding-top:68px;
+  background:var(--ink);
+}
+
+/* ══ APP TOPBAR ══ */
+.app-topbar{
+  padding:18px 4%;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);
+  background:rgba(5,12,26,0.7);
+  backdrop-filter:blur(20px);
+  position:sticky;top:68px;z-index:100;
+}
+.app-topbar-l h2{
+  font-family:var(--ff-head);font-size:1.15rem;font-weight:800;
+  letter-spacing:-.03em;color:var(--white);
+}
+.app-topbar-l p{font-size:.78rem;color:var(--muted);margin-top:2px}
+.topbar-badges{display:flex;gap:8px;align-items:center}
+.tbadge{
+  padding:4px 12px;border-radius:99px;
+  font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.22);
+  color:var(--cyan-lt);display:flex;align-items:center;gap:6px;
+}
+.tbadge .dot{width:5px;height:5px;border-radius:50%;background:var(--cyan);box-shadow:0 0 6px var(--cyan);animation:blink 2s infinite}
+
+/* ══ THREE COLUMN ══ */
+.app-body{
+  flex:1;display:grid;
+  grid-template-columns:360px 1fr 330px;
+  gap:16px;
+  padding:16px 4% 24px;
+}
+
+/* ══ PANEL BASE ══ */
+.pnl{
+  background:rgba(7,15,32,0.8);
+  border:1px solid var(--border);
+  border-radius:18px;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  backdrop-filter:blur(10px);
+}
+.pnl-head{
+  padding:14px 18px 12px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;
+  background:rgba(255,255,255,0.02);
+}
+.pnl-head h3{
+  font-family:var(--ff-head);font-size:.875rem;font-weight:700;
+  color:var(--white);display:flex;align-items:center;gap:8px;
+}
+.pnl-meta{font-size:.7rem;color:var(--dim)}
+.pnl-body{padding:18px;flex:1;overflow-y:auto}
+.pnl-body::-webkit-scrollbar{width:3px}
+.pnl-body::-webkit-scrollbar-thumb{background:rgba(59,130,246,0.3);border-radius:3px}
+
+/* ══ INPUT ELEMENTS ══ */
+.lbl{
+  display:block;font-size:.68rem;font-weight:700;
+  letter-spacing:.09em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:7px;
+}
+.url-box{
+  display:flex;align-items:center;
+  background:var(--ink2);border:1px solid var(--border);
+  border-radius:10px;overflow:hidden;
+  transition:border-color .2s,box-shadow .2s;
+}
+.url-box:focus-within{
+  border-color:rgba(59,130,246,0.5);
+  box-shadow:0 0 0 3px rgba(59,130,246,0.1);
+}
+.url-pfx{padding:0 12px;color:var(--dim);font-size:.9rem;flex-shrink:0}
+.url-inp{
+  flex:1;padding:11px 8px;background:transparent;
+  border:none;outline:none;font-family:var(--ff-body);
+  font-size:.85rem;color:var(--white);
+}
+.url-inp::placeholder{color:var(--dim)}
+.url-x{
+  padding:0 12px;background:none;border:none;
+  color:var(--dim);cursor:pointer;font-size:.75rem;display:none;
+  transition:color .2s;
+}
+.url-x:hover{color:var(--muted)}
+
+.divider{display:flex;align-items:center;gap:10px;margin:14px 0;font-size:.72rem;color:var(--dim);font-weight:700}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.drop-zone{
+  width:100%;padding:26px;
+  background:var(--ink2);
+  border:1.5px dashed rgba(255,255,255,0.08);
+  border-radius:10px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
+  cursor:pointer;transition:all .25s var(--ease);
+  color:var(--muted);font-size:.85rem;text-align:center;
+  font-family:var(--ff-body);
+}
+.drop-zone:hover{
+  border-color:rgba(59,130,246,0.4);
+  background:rgba(59,130,246,0.04);
+  color:var(--white);
+}
+.drop-zone .dz-icon{font-size:1.6rem}
+.drop-zone small{font-size:.72rem;color:var(--dim)}
+
+.inp-sel{
+  width:100%;padding:10px 14px;
+  background:var(--ink2);border:1px solid var(--border);
+  border-radius:10px;color:var(--white);
+  font-family:var(--ff-body);font-size:.85rem;outline:none;cursor:pointer;
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%233E5166' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;
+  transition:border-color .2s;
+}
+.inp-sel:focus{border-color:rgba(59,130,246,0.4)}
+
+.proc-btn{
+  width:100%;padding:13px;margin-top:16px;
+  background:linear-gradient(135deg,var(--blue),var(--sky));
+  color:#fff;border:none;border-radius:10px;
+  font-family:var(--ff-body);font-size:.93rem;font-weight:700;
+  cursor:pointer;transition:all .25s var(--ease);
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  box-shadow:0 4px 24px rgba(59,130,246,0.35);
+  position:relative;overflow:hidden;
+}
+.proc-btn::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent);transform:translateX(-100%);transition:transform .6s}
+.proc-btn:hover::after{transform:translateX(100%)}
+.proc-btn:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(59,130,246,0.45)}
+.proc-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+.rst-btn{
+  width:100%;margin-top:7px;padding:9px;background:none;
+  border:1px solid var(--border);border-radius:10px;
+  color:var(--dim);font-family:var(--ff-body);font-size:.8rem;
+  cursor:pointer;transition:all .2s;
+}
+.rst-btn:hover{border-color:var(--border2);color:var(--muted)}
+
+/* ══ PROCESSING ══ */
+.proc-state{display:none;flex-direction:column;align-items:center;padding:40px 16px;gap:16px;text-align:center}
+.proc-state.show{display:flex}
+.spin{
+  width:52px;height:52px;border-radius:50%;
+  border:2.5px solid var(--border2);
+  border-top-color:var(--blue);
+  animation:spin .75s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.proc-txt{font-family:var(--ff-head);font-size:.9rem;font-weight:700;color:var(--white)}
+.proc-sub{font-size:.78rem;color:var(--muted)}
+.prog-track{width:190px;height:3px;background:var(--ink2);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--cyan));border-radius:3px;width:0%;transition:width .4s}
+
+/* ══ SEARCH ══ */
+.srch-wrap{position:relative;margin-bottom:14px;display:none}
+.srch-ico{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:.78rem;color:var(--dim);pointer-events:none}
+.srch-inp{
+  width:100%;padding:9px 34px 9px 32px;
+  background:var(--ink2);border:1px solid var(--border);
+  border-radius:10px;outline:none;font-family:var(--ff-body);
+  font-size:.83rem;color:var(--white);transition:all .2s;
+}
+.srch-inp:focus{border-color:rgba(59,130,246,0.4);box-shadow:0 0 0 3px rgba(59,130,246,0.08)}
+.srch-inp::placeholder{color:var(--dim)}
+.srch-x{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--dim);cursor:pointer;font-size:.72rem;display:none;transition:color .2s}
+
+/* ══ TRANSCRIPT ══ */
+.tx-empty{display:flex;flex-direction:column;align-items:center;gap:10px;padding:36px 16px;text-align:center;color:var(--dim)}
+.tx-empty .ico{font-size:2.2rem;opacity:.35}
+.tx-empty p{font-size:.83rem;line-height:1.5}
+.tx-list{display:none;flex-direction:column;gap:2px;max-height:420px;overflow-y:auto;padding-right:4px}
+.tx-line{
+  display:flex;gap:10px;padding:7px 9px;
+  border-radius:9px;cursor:pointer;
+  border:1px solid transparent;transition:all .28s var(--ease), transform .2s var(--ease);
+}
+.tx-line:hover{background:var(--surf2);border-color:var(--border)}
+.tx-line.hi{background:rgba(59,130,246,0.07);border-color:rgba(59,130,246,0.2)}
+.tx-line.audio-now{
+  background:linear-gradient(90deg, rgba(6,182,212,0.12), rgba(59,130,246,0.08));
+  border-color:rgba(6,182,212,0.42);
+  box-shadow:0 0 0 1px rgba(6,182,212,0.2) inset, 0 0 18px rgba(6,182,212,0.08);
+  transform:translateX(2px);
+}
+.tx-line.audio-now .tx-ts{
+  color:var(--cyan-lt);
+  background:rgba(6,182,212,0.16);
+}
+.tx-ts{
+  font-family:var(--ff-head);font-size:.68rem;font-weight:800;
+  color:var(--blue-lt);padding:2px 7px;border-radius:5px;
+  background:rgba(59,130,246,0.1);height:fit-content;flex-shrink:0;margin-top:1px;
+}
+.tx-txt{font-size:.83rem;color:var(--muted);line-height:1.6;flex:1}
+.tx-txt mark{background:rgba(59,130,246,0.2);color:var(--blue-lt);border-radius:3px;padding:0 3px}
+
+/* ══ CENTER ══ */
+.center-col{display:flex;flex-direction:column;gap:14px}
+
+.video-pnl .pnl-body{padding:14px}
+.vc{
+  background:#000;border-radius:12px;
+  aspect-ratio:16/9;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;
+}
+.vc-ph{display:flex;flex-direction:column;align-items:center;gap:12px;color:var(--dim)}
+.vc-ph .play-orb{
+  width:60px;height:60px;border-radius:50%;
+  background:rgba(255,255,255,0.05);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;font-size:1.3rem;
+}
+.vc-ph p{font-size:.82rem;text-align:center;line-height:1.5}
+#ytFrame{width:100%;height:100%;border:none;border-radius:12px;display:none}
+
+/* timestamps */
+.ts-pnl{flex:1}
+.ts-list{display:flex;flex-direction:column;gap:5px;max-height:380px;overflow-y:auto;padding-right:4px}
+.ts-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 13px;
+  background:var(--ink2);border:1px solid var(--border);
+  border-radius:9px;cursor:pointer;transition:all .2s;
+}
+.ts-item:hover{border-color:rgba(59,130,246,0.35);background:rgba(59,130,246,0.04);transform:translateX(4px)}
+.ts-item .jump-t{
+  font-family:var(--ff-head);font-size:.75rem;font-weight:800;
+  color:var(--blue-lt);background:rgba(59,130,246,0.1);
+  padding:3px 8px;border-radius:5px;flex-shrink:0;
+}
+.ts-item .jump-c{font-size:.8rem;color:var(--muted);flex:1;line-height:1.35}
+.ts-item .jump-c mark{background:rgba(59,130,246,0.2);color:var(--blue-lt);border-radius:3px;padding:0 2px}
+.ts-item .jump-arr{color:var(--dim);font-size:.7rem}
+.ts-empty{text-align:center;color:var(--dim);font-size:.83rem;padding:20px 0}
+.chapters-wrap{margin-top:12px;padding-top:10px;border-top:1px solid var(--border)}
+.chapter-list{display:flex;flex-direction:column;gap:6px}
+.chapter-item{
+  display:flex;align-items:center;gap:10px;padding:8px 10px;
+  background:var(--ink2);border:1px solid var(--border);border-radius:8px;
+  cursor:pointer;transition:all .2s;
+}
+.chapter-item:hover{border-color:rgba(6,182,212,0.35);background:rgba(6,182,212,0.06)}
+.chapter-time{font-size:.72rem;font-weight:800;color:var(--cyan-lt);white-space:nowrap}
+.chapter-title{font-size:.78rem;color:var(--muted)}
+
+/* ══ RIGHT COLUMN ══ */
+.right-col{display:flex;flex-direction:column;gap:14px}
+
+.tab-bar{display:flex;background:var(--ink2);border-radius:9px;padding:3px;gap:2px;margin-bottom:14px}
+.tab-btn{
+  flex:1;padding:7px 6px;font-size:.72rem;font-weight:700;
+  background:transparent;border:none;border-radius:7px;
+  color:var(--dim);cursor:pointer;transition:all .2s;
+  font-family:var(--ff-body);white-space:nowrap;
+}
+.tab-btn.on{background:var(--surf3);color:var(--white)}
+
+.tp-pane{display:none}
+.tp-pane.on{display:block}
+
+/* translation */
+.trans-box{
+  background:var(--ink2);border:1px solid var(--border);
+  border-radius:10px;padding:13px;
+  min-height:76px;max-height:420px;font-size:.83rem;color:var(--muted);
+  line-height:1.75;font-style:italic;margin-top:4px;
+  overflow-y:auto;white-space:pre-wrap;
+}
+
+.trans-side{
+  display:flex;flex-direction:column;gap:10px;
+}
+.trans-side-head{
+  display:grid;
+  grid-template-columns:74px 1fr 1fr;
+  gap:10px;
+  align-items:center;
+  padding:6px 0 2px;
+}
+.trans-side-head .h{
+  font-size:.68rem;font-weight:900;color:var(--dim);
+  letter-spacing:.09em;text-transform:uppercase;
+}
+.trans-side-row{
+  display:grid;
+  grid-template-columns:74px 1fr 1fr;
+  gap:10px;
+  align-items:start;
+  padding:6px 0;
+  border-bottom:1px solid rgba(255,255,255,0.03);
+}
+.trans-side-row:last-child{border-bottom:none}
+.trans-side-ts{
+  font-family:var(--ff-head);
+  font-size:.68rem;font-weight:900;color:var(--blue-lt);
+  padding-top:3px;
+  white-space:nowrap;
+}
+.trans-side-text{
+  color:var(--muted);
+  font-style:normal;
+  white-space:pre-wrap;
+  line-height:1.65;
+  word-break:break-word;
+}
+.trans-side-text.translated{
+  color:var(--white);
+}
+.action-btn{
+  width:100%;padding:9px;margin-top:10px;
+  background:rgba(59,130,246,0.08);
+  border:1px solid rgba(59,130,246,0.22);
+  color:var(--blue-lt);border-radius:9px;
+  font-family:var(--ff-body);font-size:.8rem;font-weight:700;
+  cursor:pointer;transition:all .2s;
+}
+.action-btn:hover{background:rgba(59,130,246,0.15)}
+.action-btn.cyan{background:rgba(6,182,212,0.08);border-color:rgba(6,182,212,0.22);color:var(--cyan-lt)}
+.action-btn.cyan:hover{background:rgba(6,182,212,0.15)}
+.action-btn.download{
+  background:rgba(34,197,94,0.1);
+  border-color:rgba(34,197,94,0.25);
+  color:#86efac;
+}
+.action-btn.download:hover{background:rgba(34,197,94,0.18)}
+
+/* audio */
+.audio-box{
+  background:var(--ink2);border:1px solid var(--border);
+  border-radius:10px;padding:14px;margin-top:6px;
+}
+.audio-ctrls{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.play-btn{
+  width:38px;height:38px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--blue),var(--sky));
+  border:none;color:#fff;font-size:.85rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .2s;box-shadow:0 4px 14px rgba(59,130,246,0.3);
+}
+.play-btn:hover{transform:scale(1.08)}
+.audio-prog{flex:1}
+.a-bar{width:100%;height:3px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:4px}
+.a-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--cyan));border-radius:3px;width:0%;transition:width .12s}
+.a-time{font-size:.68rem;color:var(--dim);display:flex;justify-content:space-between}
+.spd-row{display:flex;gap:4px;margin-top:8px}
+.spd-btn{
+  flex:1;padding:4px;font-size:.68rem;font-weight:800;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:6px;color:var(--muted);cursor:pointer;
+  font-family:var(--ff-body);transition:all .2s;
+}
+.spd-btn.on{background:rgba(59,130,246,0.12);border-color:rgba(59,130,246,0.3);color:var(--blue-lt)}
+.follow-sync-row{display:flex;align-items:center;justify-content:space-between;margin-top:10px;gap:10px}
+.follow-sync-row .lbl{margin:0}
+.follow-toggle{
+  border:1px solid var(--border2);
+  background:var(--surface);
+  color:var(--muted);
+  border-radius:999px;
+  min-width:88px;
+  padding:5px 10px;
+  font-size:.72rem;
+  font-weight:800;
+  cursor:pointer;
+  transition:all .2s;
+}
+.follow-toggle.on{
+  background:rgba(6,182,212,0.14);
+  border-color:rgba(6,182,212,0.4);
+  color:var(--cyan-lt);
+}
+
+/* summary */
+.sum-tabs{display:flex;gap:6px;margin-bottom:10px}
+.sum-tab{
+  padding:4px 12px;font-size:.72rem;font-weight:700;
+  background:var(--ink2);border:1px solid var(--border);
+  border-radius:6px;color:var(--muted);cursor:pointer;
+  font-family:var(--ff-body);transition:all .2s;
+}
+.sum-tab.on{background:rgba(59,130,246,0.1);border-color:rgba(59,130,246,0.28);color:var(--blue-lt)}
+.sum-txt{
+  background:var(--ink2);border:1px solid var(--border);
+  border-radius:10px;padding:13px;
+  font-size:.83rem;color:var(--muted);line-height:1.78;min-height:160px;
+}
+.topic-wrap{margin-top:10px}
+.topic-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.topic-chip{
+  padding:5px 10px;border-radius:999px;
+  background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.25);
+  color:var(--blue-lt);font-size:.72rem;font-weight:700;
+}
+.topic-muted{font-size:.75rem;color:var(--dim)}
+.qa-box{margin-top:10px}
+.qa-inp{
+  width:100%;padding:10px 12px;border-radius:10px;
+  background:var(--ink2);border:1px solid var(--border);
+  color:var(--white);outline:none;font-family:var(--ff-body);font-size:.83rem;
+}
+.qa-inp:focus{border-color:rgba(6,182,212,0.35);box-shadow:0 0 0 3px rgba(6,182,212,0.08)}
+.qa-ans{
+  margin-top:10px;background:var(--ink2);border:1px solid var(--border);
+  border-radius:10px;padding:12px;font-size:.83rem;color:var(--muted);line-height:1.75;
+  min-height:190px;
+}
+.qa-chat{max-height:220px;overflow:auto;padding-right:2px}
+.qa-evidence{max-height:180px;overflow:auto;padding-right:2px}
+.qa-chat{display:flex;flex-direction:column;gap:8px}
+.qa-msg{padding:10px 11px;border-radius:10px;border:1px solid var(--border);line-height:1.65}
+.qa-msg.user{background:rgba(59,130,246,0.08);border-color:rgba(59,130,246,0.22);color:var(--white)}
+.qa-msg.bot{background:rgba(6,182,212,0.07);border-color:rgba(6,182,212,0.18)}
+.qa-meta{font-size:.72rem;color:var(--dim);margin-top:10px}
+.qa-evidence{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.qa-ev{padding:8px 10px;border-radius:9px;border:1px solid var(--border);background:rgba(255,255,255,0.02);cursor:pointer;transition:all .2s}
+.qa-ev:hover{border-color:rgba(59,130,246,0.28);background:rgba(59,130,246,0.05)}
+.qa-ev .t{font-weight:900;color:var(--blue-lt);font-size:.72rem;margin-right:8px}
+.qa-ev .tx{color:var(--muted);font-size:.78rem}
+.qa-row{display:flex;gap:8px;margin-top:10px}
+.qa-btn{
+  flex:1;padding:9px;border-radius:10px;border:1px solid rgba(6,182,212,0.22);
+  background:rgba(6,182,212,0.08);color:var(--cyan-lt);font-weight:800;cursor:pointer;
+  font-family:var(--ff-body);font-size:.8rem;transition:all .2s;
+}
+.qa-btn:hover{background:rgba(6,182,212,0.15)}
+.qa-jump{
+  padding:9px 10px;border-radius:10px;border:1px solid rgba(59,130,246,0.22);
+  background:rgba(59,130,246,0.08);color:var(--blue-lt);font-weight:800;cursor:pointer;
+  font-family:var(--ff-body);font-size:.8rem;transition:all .2s;white-space:nowrap;
+}
+.qa-jump:hover{background:rgba(59,130,246,0.15)}
+
+/* ══ STATUS BAR ══ */
+.status-bar{
+  padding:7px 4%;
+  background:rgba(5,12,26,0.9);
+  border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:20px;
+  font-size:.7rem;color:var(--dim);
+}
+.st-item{display:flex;align-items:center;gap:5px}
+.st-dot{width:5px;height:5px;border-radius:50%;background:var(--cyan)}
+.st-dot.off{background:var(--dim)}
+
+/* ══ TOAST ══ */
+.toasts{position:fixed;bottom:22px;right:22px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{
+  padding:11px 16px;
+  background:rgba(7,15,32,0.95);
+  border:1px solid var(--border2);
+  backdrop-filter:blur(24px);
+  border-radius:10px;font-size:.82rem;color:var(--white);
+  display:flex;align-items:center;gap:9px;
+  box-shadow:0 8px 32px rgba(0,0,0,.4);
+  min-width:240px;
+  animation:tst .3s var(--ease);
+}
+.toast.ok{border-color:rgba(59,130,246,0.3)}
+.toast.err{border-color:rgba(239,68,68,0.3)}
+@keyframes tst{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ══ RESPONSIVE ══ */
+@media(max-width:1200px){
+  .app-body{grid-template-columns:320px 1fr 300px;gap:12px}
+}
+@media(max-width:960px){
+  .app-body{grid-template-columns:1fr;padding:12px 3%}
+  .right-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+}
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAVBAR -->
+<nav class="nav stuck" id="nav">
+  <a href="index.html" class="logo">
+    <div class="logo-mark">🎤</div>Speech<span>Findr</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="project.html" class="active">Project</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+  <div style="display:flex;gap:10px;align-items:center">
+    <div class="tbadge" id="appBadge"><div class="dot"></div>Ready</div>
+    <a href="index.html" class="nav-cta" style="padding:8px 16px;font-size:.8rem">← Home</a>
+  </div>
+</nav>
+
+<div class="app-wrap">
+
+  <!-- TOP BAR -->
+  <div class="app-topbar">
+    <div class="app-topbar-l">
+      <h2>🎙 SpeechFindr <span style="color:var(--muted);font-weight:400;font-size:.9rem">— Application</span></h2>
+      <p>Paste a YouTube URL or upload a video to extract speech, search, and translate.</p>
+    </div>
+    <div class="topbar-badges">
+      <span class="tbadge" style="background:rgba(6,182,212,0.08);border-color:rgba(6,182,212,0.2);color:var(--cyan-lt)">Whisper AI</span>
+      <span class="tbadge" style="background:rgba(255,255,255,0.04);border-color:var(--border);color:var(--muted)">Beta v1.0</span>
+    </div>
+  </div>
+
+  <!-- THREE COLUMN BODY -->
+  <div class="app-body">
+
+    <!-- ══════ LEFT PANEL ══════ -->
+    <div class="pnl">
+      <div class="pnl-head">
+        <h3>📥 Input</h3>
+        <span class="pnl-meta" id="inputMeta">No video</span>
+      </div>
+      <div class="pnl-body">
+
+        <!-- URL -->
+        <div style="margin-bottom:16px">
+          <label class="lbl">YouTube URL</label>
+          <div class="url-box" id="urlBox">
+            <span class="url-pfx">🔗</span>
+            <input class="url-inp" id="urlInp" type="text" placeholder="https://youtube.com/watch?v=..."/>
+            <button class="url-x" id="urlX" onclick="clearUrl()">✕</button>
+          </div>
+        </div>
+
+        <div class="divider">OR</div>
+
+        <!-- Upload -->
+        <div style="margin-bottom:16px">
+          <label class="lbl">Upload Video / Audio</label>
+          <input type="file" id="fileInp" accept="video/*,audio/*" style="display:none" onchange="onFile(this)"/>
+          <div class="drop-zone" id="dz" onclick="document.getElementById('fileInp').click()">
+            <span class="dz-icon">📁</span>
+            <span>Click or drag & drop here</span>
+            <small>MP4 · MKV · AVI · MP3 · WAV — up to 500MB</small>
+          </div>
+        </div>
+
+        <!-- Transcript Language -->
+        <div style="margin-bottom:0">
+          <label class="lbl">Transcript Language</label>
+          <select class="inp-sel" id="txLang">
+            <option value="auto">Auto Detect (Best Available)</option>
+            <option value="en">English</option>
+            <option value="ur">Urdu</option>
+            <option value="ar">Arabic</option>
+            <option value="fr">French</option>
+            <option value="de">German</option>
+            <option value="es">Spanish</option>
+            <option value="hi">Hindi</option>
+            <option value="tr">Turkish</option>
+            <option value="pt">Portuguese</option>
+            <option value="ru">Russian</option>
+            <option value="ja">Japanese</option>
+            <option value="ko">Korean</option>
+          </select>
+          <button class="rst-btn" style="margin-top:8px" onclick="reloadTranscriptFromLanguage()">Reload Transcript Language</button>
+          <div class="pnl-meta" id="srcDetectLabel" style="margin-top:8px">Detected: —</div>
+        </div>
+
+        <!-- Buttons -->
+        <button class="proc-btn" id="procBtn" onclick="startProc()">⚡ Process Video</button>
+        <button class="rst-btn" onclick="resetAll()">↺ Reset</button>
+
+        <!-- TRANSCRIPT SECTION -->
+        <div style="margin-top:22px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <label class="lbl" style="margin:0">Transcript</label>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span id="txSource" class="pnl-meta">source: —</span>
+              <span id="txCount" class="pnl-meta">—</span>
+            </div>
+          </div>
+
+          <!-- Search -->
+          <div class="srch-wrap" id="srchWrap">
+            <span class="srch-ico">🔍</span>
+            <input class="srch-inp" id="srchInp" type="text" placeholder="Search keywords..." oninput="doSearch(this.value)"/>
+            <button class="srch-x" id="srchX" onclick="clearSearch()">✕</button>
+          </div>
+
+          <!-- Processing spinner -->
+          <div class="proc-state" id="procState">
+            <div class="spin"></div>
+            <div>
+              <div class="proc-txt" id="procTxt">Fetching video...</div>
+              <div class="proc-sub" id="procSub">Connecting to source</div>
+            </div>
+            <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+          </div>
+
+          <!-- Placeholder -->
+          <div class="tx-empty" id="txPh">
+            <div class="ico">📄</div>
+            <p>Process a video to<br>see the transcript here</p>
+          </div>
+
+          <!-- Transcript lines -->
+          <div class="tx-list" id="txList"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══════ CENTER COLUMN ══════ -->
+    <div class="center-col">
+
+      <!-- Video -->
+      <div class="pnl video-pnl">
+        <div class="pnl-head">
+          <h3>▶ Video Player</h3>
+          <span class="pnl-meta" id="vidMeta" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">No video loaded</span>
+        </div>
+        <div class="pnl-body">
+          <div class="vc" id="vc">
+            <div class="vc-ph" id="vcPh">
+              <div class="play-orb">▶</div>
+              <p>Paste a URL or upload a<br>video to start</p>
+            </div>
+            <iframe id="ytFrame" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timestamps -->
+      <div class="pnl ts-pnl" style="flex:1">
+        <div class="pnl-head" style="align-items:center;gap:10px">
+          <h3>⏱ Timestamp Results</h3>
+          <div style="display:flex;align-items:center;gap:10px;margin-left:auto">
+            <span class="pnl-meta" id="tsCount">0 results</span>
+            <button class="btn btn-ghost btn-sm" onclick="setTimestampMode('full')">Unlimited</button>
+          </div>
+        </div>
+        <div class="pnl-body">
+          <div class="ts-empty" id="tsEmpty">Search a keyword above to see results here</div>
+          <div class="ts-list" id="tsList" style="display:none"></div>
+          <div class="chapters-wrap">
+            <label class="lbl" style="margin-bottom:6px">Auto Chapters</label>
+            <div class="topic-muted" id="chapterMeta">Chapters appear after processing transcript</div>
+            <div class="chapter-list" id="chapterList"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ══════ RIGHT COLUMN ══════ -->
+    <div class="right-col">
+
+      <!-- Translation + Audio + Summary all in tabs -->
+      <div class="pnl" style="flex:2">
+        <div class="pnl-head"><h3>🌍 Translation</h3></div>
+        <div class="pnl-body">
+          <label class="lbl">Target Language</label>
+          <select class="inp-sel" id="tgtLang" style="margin-bottom:6px">
+            <option value="ur">Urdu — اردو</option>
+            <option value="ar">Arabic — العربية</option>
+            <option value="fa">Persian — فارسی</option>
+            <option value="fr">French — Français</option>
+            <option value="de">German — Deutsch</option>
+            <option value="es">Spanish — Español</option>
+            <option value="zh">Chinese — 中文</option>
+            <option value="hi">Hindi — हिन्दी</option>
+            <option value="tr">Turkish — Türkçe</option>
+            <option value="ru">Russian — Русский</option>
+            <option value="ja">Japanese — 日本語</option>
+            <option value="pt">Portuguese — Português</option>
+            <option value="ko">Korean — 한국어</option>
+          </select>
+          <div class="trans-box" id="transBox">Translation appears here after processing...</div>
+          <button class="action-btn" id="transBtn" onclick="doTranslate()">🌐 Translate Now</button>
+        </div>
+      </div>
+
+      <div class="pnl">
+        <div class="pnl-head"><h3>🔊 Audio Playback</h3></div>
+        <div class="pnl-body">
+          <label class="lbl">Play Translated Speech</label>
+          <label class="lbl" style="margin-top:10px">Voice</label>
+          <select class="inp-sel" id="voiceSel">
+            <option value="neutral">Neutral Voice</option>
+            <option value="male" selected>Male Voice</option>
+            <option value="female">Female Voice</option>
+          </select>
+          <div class="audio-box">
+            <div class="audio-ctrls">
+              <button class="play-btn" id="playBtn" onclick="togglePlay()">▶</button>
+              <div class="audio-prog">
+                <div class="a-bar"><div class="a-fill" id="aFill"></div></div>
+                <div class="a-time"><span id="aCur">0:00</span><span id="aDur">0:00</span></div>
+              </div>
+            </div>
+            <div class="spd-row">
+              <button class="spd-btn" onclick="setSpd(.75,this)">0.75×</button>
+              <button class="spd-btn on" onclick="setSpd(1,this)">1×</button>
+              <button class="spd-btn" onclick="setSpd(1.5,this)">1.5×</button>
+              <button class="spd-btn" onclick="setSpd(2,this)">2×</button>
+            </div>
+            <div class="follow-sync-row">
+              <label class="lbl">Follow Sync</label>
+              <button id="followSyncBtn" class="follow-toggle on" onclick="toggleFollowSync()">ON</button>
+            </div>
+          </div>
+          <button class="action-btn cyan" style="margin-top:10px" onclick="genAudio()">🎙 Generate Audio</button>
+          <button class="action-btn download" id="downloadAudioBtn" style="margin-top:8px;display:none" onclick="downloadAudio()">💾 Download MP3</button>
+        </div>
+      </div>
+
+      <div class="pnl" style="flex:1">
+        <div class="pnl-head"><h3>✂️ AI Summary</h3></div>
+        <div class="pnl-body">
+          <div class="sum-tabs">
+            <button class="sum-tab on" data-summode onclick="setSumTab('g',this)">General</button>
+            <button class="sum-tab" data-summode onclick="setSumTab('k',this)">Keyword</button>
+          </div>
+          <div class="sum-tabs" style="margin-top:-2px">
+            <button class="sum-tab" data-sumlen onclick="setSumLength('short',this)">Short (50)</button>
+            <button class="sum-tab on" data-sumlen onclick="setSumLength('medium',this)">Medium (150)</button>
+            <button class="sum-tab" data-sumlen onclick="setSumLength('detailed',this)">Detailed (300)</button>
+          </div>
+          <div class="sum-tabs" style="margin-top:-2px">
+            <button class="sum-tab on" data-sumlang onclick="setSumLanguage('en',this)">English</button>
+            <button class="sum-tab" data-sumlang onclick="setSumLanguage('ur',this)">Urdu</button>
+            <button class="sum-tab" data-sumlang onclick="setSumLanguage('ar',this)">Arabic</button>
+          </div>
+          <div class="sum-txt" id="sumTxt">Process a video first to generate a summary...</div>
+          <button class="action-btn" style="background:rgba(6,182,212,0.08);border-color:rgba(6,182,212,0.22);color:var(--cyan-lt)" onclick="genSum()">✨ Generate Summary</button>
+          <div class="topic-wrap">
+            <label class="lbl" style="margin-top:12px">Auto Topics</label>
+            <div id="topicMeta" class="topic-muted">Topics appear after processing transcript</div>
+            <div class="topic-list" id="topicList"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pnl" style="flex:1">
+        <div class="pnl-head"><h3>💬 Ask the Video</h3></div>
+        <div class="pnl-body">
+          <label class="lbl">Ask a question</label>
+          <input class="qa-inp" id="qaInp" type="text" placeholder="What is backpropagation?" />
+          <div class="qa-row">
+            <button class="qa-btn" id="qaBtn" onclick="askVideo()">🔍 Ask</button>
+            <button class="qa-jump" id="qaJump" style="display:none" onclick="jumpTo(LAST_QA_TS)">⏱ Jump</button>
+          </div>
+          <div class="qa-ans">
+            <div class="qa-chat" id="qaChat">
+              Process a video first to ask questions…
+            </div>
+            <div class="qa-meta" id="qaMeta" style="display:none">Evidence</div>
+            <div class="qa-evidence" id="qaEvidence"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <div class="st-item"><div class="st-dot"></div><span id="stConn">Connected</span></div>
+    <div class="st-item"><div class="st-dot off"></div><span>Whisper Large v3</span></div>
+    <div class="st-item"><div class="st-dot off"></div><span id="stProc">Idle</span></div>
+    <span style="margin-left:auto;font-size:.68rem">SpeechFindr v1.0 — Iqra University FYP 2025</span>
+  </div>
+
+</div>
+
+<div class="toasts" id="toasts"></div>
+<video id="fileVid" style="display:none"></video>
+
+<script>
+/* ══════════════════════════════
+   APP LOGIC
+══════════════════════════════ */
+let TRANSCRIPT=[];
+let CAPTIONS=null;
+let CURRENT_FILE=null;
+let TOPICS=[];
+let CHAPTERS=[];
+let LAST_QA_TS=0;
+let videoDuration = 0;
+let durationReady = false;
+let timestampMode = 'full';
+let SOURCE_LANG = 'auto';
+const API_BASE = 'http://127.0.0.1:8001';
+let TRANSCRIPT_SOURCE = 'none';
+let ACTIVE_RUN_ID = 0;
+let LAST_TRANSLATION = null;
+const TRANS={
+  ur:'مشین لرننگ مصنوعی ذہانت کی ایک شاخ ہے جو سسٹمز کو خود بخود سیکھنے کی صلاحیت دیتی ہے۔ نیورل نیٹ ورکس انسانی دماغ کے حیاتیاتی نیورل نیٹ ورکس سے متاثر ہیں۔ گہری سیکھ میں پیچیدہ نمونوں کی شناخت کے لیے بہت سی پوشیدہ تہوں والے نیورل نیٹ ورکس شامل ہیں۔',
+  ar:'التعلم الآلي هو فرع من فروع الذكاء الاصطناعي الذي يمكّن الأنظمة من التعلم تلقائياً. الشبكات العصبية مستوحاة من الشبكات العصبية البيولوجية في الدماغ البشري.',
+  fr:"L'apprentissage automatique est une branche de l'IA qui permet aux systèmes d'apprendre automatiquement. Les réseaux de neurones s'inspirent des réseaux neuronaux biologiques du cerveau humain.",
+  de:'Maschinelles Lernen ist ein Teilbereich der KI, der es Systemen ermöglicht, automatisch zu lernen. Neuronale Netze sind inspiriert von den biologischen neuronalen Netzen im menschlichen Gehirn.',
+  es:'El aprendizaje automático es una rama de la IA que permite a los sistemas aprender automáticamente. Las redes neuronales se inspiran en las redes neuronales biológicas del cerebro humano.',
+  zh:'机器学习是人工智能的一个分支，使系统能够自动学习。神经网络受到人类大脑中生物神经网络的启发。',
+  hi:'मशीन लर्निंग आर्टिफिशियल इंटेलिजेंस की एक शाखा है जो सिस्टम को स्वचालित रूप से सीखने में सक्षम बनाती है।',
+  tr:'Makine öğrenmesi, sistemlerin otomatik olarak öğrenmesini sağlayan yapay zekanın bir dalıdır.',
+  ru:'Машинное обучение — раздел ИИ, позволяющий системам учиться автоматически. Нейронные сети вдохновлены биологическими нейронными сетями мозга.',
+  ja:'機械学習は、システムが自動的に学習できるようにする人工知能の一分野です。',
+  pt:'O aprendizado de máquina é um ramo da IA que permite que os sistemas aprendam automaticamente.',
+  ko:'머신 러닝은 시스템이 자동으로 학습할 수 있게 하는 인공 지능의 한 분야입니다.',
+};
+const SUMMARY={
+  g:'This video provides a comprehensive overview of machine learning fundamentals — covering neural networks, deep learning architectures, supervised learning, backpropagation, gradient descent, NLP, and the future of AI research.',
+  k:'Based on your search, the video focuses on neural networks extensively — discussing their biological inspiration, layered architecture, training via backpropagation, and specialized forms like CNNs and RNNs.'
+};
+
+function buildTranscript(duration, mode='full', captions=null){
+  if(duration<=0) return [];
+  if(captions && captions.length>0) return captions;
+  return [];
+}
+
+// Fetch actual YouTube captions
+function parseVtt(vtt){
+  const lines=vtt.split('\n');
+  const captions=[];
+  for(let i=0;i<lines.length;i++){
+    const line=lines[i].trim();
+    if(!line || line === 'WEBVTT' || /^\d+$/.test(line)) continue;
+    if(line.includes('-->')){
+      const times=line.split(' --> ');
+      if(times.length!==2) continue;
+      const start=timeToSec(times[0].trim());
+      const cueLines=[];
+      let j=i+1;
+      while(j<lines.length){
+        const cueLine=(lines[j]||'').trim();
+        if(!cueLine) break;
+        if(!cueLine.includes('NOTE')) cueLines.push(cueLine);
+        j++;
+      }
+      i=j;
+      const text=cueLines.join(' ').replace(/<[^>]*>/g,'').trim();
+      if(text){
+        captions.push({t:fmt(start),s:start,tx:text});
+      }
+    }
+  }
+  return captions;
+}
+
+async function tryCaptionUrl(url){
+  const resp=await fetchTextWithTimeout(url,12000);
+  if(!resp.ok) return null;
+  const vtt=await resp.text();
+  const parsed=parseVtt(vtt);
+  return parsed.length ? parsed : null;
+}
+
+async function fetchYouTubeTranscript(videoId, wantedLang='auto'){
+  try{
+    const lang=(wantedLang || 'auto').toLowerCase();
+    const candidates=[];
+    if(lang!=='auto'){
+      candidates.push(
+        `https://www.youtube.com/api/timedtext?v=${videoId}&lang=${lang}&fmt=vtt`,
+        `https://www.youtube.com/api/timedtext?v=${videoId}&lang=${lang}&kind=asr&fmt=vtt`
+      );
+    }
+    candidates.push(
+      `https://www.youtube.com/api/timedtext?v=${videoId}&lang=en&fmt=vtt`,
+      `https://www.youtube.com/api/timedtext?v=${videoId}&lang=en&kind=asr&fmt=vtt`
+    );
+    for(const url of candidates){
+      const found=await tryCaptionUrl(url);
+      if(found) return found;
+    }
+    return null;
+  }catch(e){
+    console.log('Caption fetch failed:',e.message);
+    return null;
+  }
+}
+
+async function fetchTextWithTimeout(url, timeoutMs=12000){
+  const ctrl=new AbortController();
+  const to=setTimeout(()=>ctrl.abort(),timeoutMs);
+  try{
+    return await fetch(url,{signal:ctrl.signal});
+  }finally{
+    clearTimeout(to);
+  }
+}
+
+async function fetchTranscriptFromBackend(url, wantedLang='auto'){
+  try{
+    const qs=new URLSearchParams({
+      url,
+      language:wantedLang||'auto',
+    });
+    const resp=await fetchTextWithTimeout(`${API_BASE}/youtube/transcript?${qs.toString()}`,30000);
+    if(!resp.ok){
+      let errBody='';
+      try{errBody=await resp.text();}catch(e){}
+      console.log('Backend transcript HTTP error:',resp.status,errBody);
+      return null;
+    }
+    const data=await resp.json();
+    const segments=Array.isArray(data.segments)?data.segments:[];
+    return {
+      source:data.source||'backend',
+      segments:segments.map(s=>({
+        t:s.t||fmt(s.s||0),
+        s:Number.isFinite(s.s)?s.s:0,
+        tx:s.tx||'',
+      })).filter(s=>s.tx),
+    };
+  }catch(e){
+    console.log('Backend transcript failed:',e.message);
+    return null;
+  }
+}
+
+async function fetchUploadedTranscriptFromBackend(file, wantedLang='auto'){
+  try{
+    const fd=new FormData();
+    fd.append('file', file);
+    fd.append('language', wantedLang||'auto');
+    if(videoDuration>0) fd.append('duration_seconds', String(videoDuration));
+    const resp=await fetch(`${API_BASE}/file/transcript`,{
+      method:'POST',
+      body:fd
+    });
+    if(!resp.ok){
+      let errBody='';
+      try{errBody=await resp.text();}catch(e){}
+      console.log('Backend upload transcript HTTP error:',resp.status,errBody);
+      let detail='Upload transcription failed.';
+      try{
+        const parsed=JSON.parse(errBody);
+        detail=parsed.detail||detail;
+      }catch(e){
+        if(errBody) detail=errBody;
+      }
+      return {error:detail, source:'unavailable', segments:[]};
+    }
+    const data=await resp.json();
+    const segments=Array.isArray(data.segments)?data.segments:[];
+    return {
+      source:data.source||'groq_whisper',
+      segments:segments.map(s=>({
+        t:s.t||fmt(s.s||0),
+        s:Number.isFinite(s.s)?s.s:0,
+        tx:s.tx||'',
+      })).filter(s=>s.tx),
+    };
+  }catch(e){
+    console.log('Backend upload transcript failed:',e.message);
+    return {error:e.message||'Upload transcription failed.', source:'unavailable', segments:[]};
+  }
+}
+
+async function fetchSummaryFromBackend(mode, keyword=''){
+  try{
+    if(!Array.isArray(TRANSCRIPT) || !TRANSCRIPT.length){
+      return {error:'Transcript is empty. Process video first.'};
+    }
+    const transcriptText=TRANSCRIPT.map(s=>s.tx||'').filter(Boolean).join(' ');
+    const resp=await fetch(`${API_BASE}/summary`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        transcript:transcriptText,
+        mode,
+        keyword:keyword||'',
+        length:sumLengthMode,
+        language:sumLanguageMode,
+      }),
+    });
+    if(!resp.ok){
+      let errBody='';
+      try{errBody=await resp.text();}catch(e){}
+      let detail='Summary generation failed.';
+      try{
+        const parsed=JSON.parse(errBody);
+        detail=parsed.detail||detail;
+      }catch(e){
+        if(errBody) detail=errBody;
+      }
+      return {error:detail};
+    }
+    const data=await resp.json();
+    return {summary:(data.summary||'').trim()};
+  }catch(e){
+    return {error:e.message||'Summary generation failed.'};
+  }
+}
+
+async function fetchTopicsFromBackend(maxTopics=6){
+  try{
+    if(!Array.isArray(TRANSCRIPT) || !TRANSCRIPT.length){
+      return {error:'Transcript is empty. Process video first.'};
+    }
+    const transcriptText=TRANSCRIPT.map(s=>s.tx||'').filter(Boolean).join(' ');
+    const resp=await fetch(`${API_BASE}/topics`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        transcript:transcriptText,
+        max_topics:maxTopics,
+      }),
+    });
+    if(!resp.ok){
+      let errBody='';
+      try{errBody=await resp.text();}catch(e){}
+      let detail='Topic detection failed.';
+      try{
+        const parsed=JSON.parse(errBody);
+        detail=parsed.detail||detail;
+      }catch(e){
+        if(errBody) detail=errBody;
+      }
+      return {error:detail};
+    }
+    const data=await resp.json();
+    const topics=Array.isArray(data.topics)?data.topics:[];
+    return {topics:topics.filter(Boolean).slice(0,12)};
+  }catch(e){
+    return {error:e.message||'Topic detection failed.'};
+  }
+}
+
+async function fetchChaptersFromBackend(maxChapters=6){
+  try{
+    if(!Array.isArray(TRANSCRIPT) || !TRANSCRIPT.length){
+      return {error:'Transcript is empty. Process video first.'};
+    }
+    const payloadSegments=TRANSCRIPT
+      .map(s=>({s:Number.isFinite(s.s)?s.s:0,tx:s.tx||''}))
+      .filter(s=>s.tx);
+    const resp=await fetch(`${API_BASE}/chapters`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        segments:payloadSegments,
+        duration_seconds:getVideoDurationEstimate(),
+        max_chapters:maxChapters,
+      }),
+    });
+    if(!resp.ok){
+      let errBody='';
+      try{errBody=await resp.text();}catch(e){}
+      let detail='Chapter detection failed.';
+      try{
+        const parsed=JSON.parse(errBody);
+        detail=parsed.detail||detail;
+      }catch(e){
+        if(errBody) detail=errBody;
+      }
+      return {error:detail};
+    }
+    const data=await resp.json();
+    const chapters=Array.isArray(data.chapters)?data.chapters:[];
+    return {chapters:chapters.filter(c=>Number.isFinite(c.start)&&c.title).slice(0,12)};
+  }catch(e){
+    return {error:e.message||'Chapter detection failed.'};
+  }
+}
+
+async function fetchQaFromBackend(question){
+  try{
+    if(!Array.isArray(TRANSCRIPT) || !TRANSCRIPT.length){
+      return {error:'Transcript is empty. Process video first.'};
+    }
+    const segs=TRANSCRIPT
+      .map(s=>({s:Number.isFinite(s.s)?s.s:0,tx:s.tx||''}))
+      .filter(s=>s.tx);
+    const maxSend=420;
+    const sampled=segs.length<=maxSend?segs:segs.filter((_,i)=>i%(Math.ceil(segs.length/maxSend))===0);
+    const resp=await fetch(`${API_BASE}/qa`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        segments:sampled,
+        question:String(question||''),
+        max_context:12,
+        history:QA_CHAT.slice(-6),
+      }),
+    });
+    if(!resp.ok){
+      let errBody='';
+      try{errBody=await resp.text();}catch(e){}
+      let detail='Q&A failed.';
+      try{
+        const parsed=JSON.parse(errBody);
+        detail=parsed.detail||detail;
+      }catch(e){
+        if(errBody) detail=errBody;
+      }
+      return {error:detail};
+    }
+    const data=await resp.json();
+    return {
+      answer:(data.answer||'').trim(),
+      timestamp_s:Number.isFinite(data.timestamp_s)?data.timestamp_s:0,
+      timestamp_t:(data.timestamp_t||fmt(Number.isFinite(data.timestamp_s)?data.timestamp_s:0)),
+      evidence:Array.isArray(data.evidence)?data.evidence:[],
+    };
+  }catch(e){
+    return {error:e.message||'Q&A failed.'};
+  }
+}
+
+async function animateQaText(el, text, token){
+  const full=String(text||'').trim();
+  el.textContent='';
+  const step=Math.max(2,Math.ceil(full.length/260));
+  for(let i=0;i<full.length;i+=step){
+    if(token!==QA_RENDER_TOKEN) return;
+    el.textContent=full.slice(0,i+step);
+    await new Promise(r=>setTimeout(r,12));
+  }
+  if(token===QA_RENDER_TOKEN) el.textContent=full;
+}
+
+function renderQaChat(){
+  const chat=document.getElementById('qaChat');
+  chat.innerHTML='';
+  if(!QA_CHAT.length){
+    chat.textContent= ready ? 'Ask a question above to get an answer with timestamp.' : 'Process a video first to ask questions…';
+    return;
+  }
+  QA_CHAT.slice(-10).forEach(m=>{
+    const div=document.createElement('div');
+    div.className='qa-msg '+(m.role==='user'?'user':'bot');
+    div.textContent=m.content;
+    chat.appendChild(div);
+  });
+}
+
+function renderQaEvidence(evidence){
+  const wrap=document.getElementById('qaEvidence');
+  const meta=document.getElementById('qaMeta');
+  wrap.innerHTML='';
+  const rows=(Array.isArray(evidence)?evidence:[]).filter(r=>r && r.tx);
+  if(!rows.length){
+    meta.style.display='none';
+    return;
+  }
+  meta.style.display='block';
+  rows.slice(0,6).forEach(r=>{
+    const el=document.createElement('div');
+    el.className='qa-ev';
+    const s=Number.isFinite(r.s)?r.s:0;
+    const t=r.t||fmt(s);
+    el.onclick=()=>jumpTo(s);
+    el.innerHTML=`<span class="t">${t}</span><span class="tx">${esc(String(r.tx))}</span>`;
+    wrap.appendChild(el);
+  });
+}
+
+function askVideo(){
+  if(!ready){toast('err','⚠️ Process a video first');return}
+  const q=document.getElementById('qaInp').value.trim();
+  if(!q){toast('err','⚠️ Type a question first');return}
+  const jumpBtn=document.getElementById('qaJump');
+  QA_RENDER_TOKEN++;
+  const token=QA_RENDER_TOKEN;
+  jumpBtn.style.display='none';
+  QA_CHAT.push({role:'user',content:q});
+  renderQaChat();
+  renderQaEvidence([]);
+  const chat=document.getElementById('qaChat');
+  const thinking=document.createElement('div');
+  thinking.className='qa-msg bot';
+  thinking.style.color='var(--dim)';
+  thinking.textContent='Thinking...';
+  chat.appendChild(thinking);
+  fetchQaFromBackend(q).then(async res=>{
+    if(token!==QA_RENDER_TOKEN) return;
+    if(res?.answer){
+      LAST_QA_TS=res.timestamp_s||0;
+      const answerText=res.answer;
+      QA_CHAT.push({role:'assistant',content:answerText});
+      thinking.textContent='';
+      await animateQaText(thinking,answerText,token);
+      if(token!==QA_RENDER_TOKEN) return;
+      thinking.style.color='var(--muted)';
+      renderQaEvidence(res.evidence||[]);
+      if(Number.isFinite(LAST_QA_TS) && LAST_QA_TS>0){
+        jumpBtn.textContent=`⏱ Jump ${res.timestamp_t||fmt(LAST_QA_TS)}`;
+        jumpBtn.style.display='inline-block';
+      }
+      toast('ok','✅ Answer ready');
+    }else{
+      thinking.textContent='Could not answer right now.';
+      thinking.style.color='var(--muted)';
+      toast('err','❌ '+String(res?.error||'Q&A failed.').slice(0,180));
+    }
+  });
+}
+
+function renderTopicTags(topics){
+  const list=document.getElementById('topicList');
+  const meta=document.getElementById('topicMeta');
+  list.innerHTML='';
+  const clean=(Array.isArray(topics)?topics:[]).filter(Boolean);
+  if(!clean.length){
+    meta.textContent='No topics found yet.';
+    return;
+  }
+  clean.forEach(topic=>{
+    const chip=document.createElement('span');
+    chip.className='topic-chip';
+    chip.textContent='🏷️ '+topic;
+    list.appendChild(chip);
+  });
+  meta.textContent=`${clean.length} topic${clean.length!==1?'s':''} detected`;
+}
+
+function renderChapterList(chapters){
+  const list=document.getElementById('chapterList');
+  const meta=document.getElementById('chapterMeta');
+  list.innerHTML='';
+  const rows=(Array.isArray(chapters)?chapters:[]).filter(c=>Number.isFinite(c.start)&&c.title);
+  if(!rows.length){
+    meta.textContent='No chapters found yet.';
+    return;
+  }
+  rows.forEach(ch=>{
+    const item=document.createElement('div');
+    item.className='chapter-item';
+    item.onclick=()=>jumpTo(ch.start);
+    const startTxt=ch.start_t||fmt(ch.start||0);
+    const endTxt=ch.end_t||fmt(ch.end||0);
+    item.innerHTML=`<span class="chapter-time">${startTxt} - ${endTxt}</span><span class="chapter-title">${esc(ch.title||'Chapter')}</span>`;
+    list.appendChild(item);
+  });
+  meta.textContent=`${rows.length} chapter${rows.length!==1?'s':''} detected`;
+}
+
+async function autoDetectTopics(runId){
+  TOPIC_RENDER_TOKEN++;
+  const token=TOPIC_RENDER_TOKEN;
+  const meta=document.getElementById('topicMeta');
+  meta.textContent='Detecting topics...';
+  const result=await fetchTopicsFromBackend(6);
+  if(runId!==ACTIVE_RUN_ID || token!==TOPIC_RENDER_TOKEN) return;
+  if(result?.topics?.length){
+    TOPICS=result.topics;
+    renderTopicTags(TOPICS);
+  }else{
+    TOPICS=[];
+    renderTopicTags([]);
+  }
+}
+
+async function autoDetectChapters(runId){
+  CHAPTER_RENDER_TOKEN++;
+  const token=CHAPTER_RENDER_TOKEN;
+  const meta=document.getElementById('chapterMeta');
+  meta.textContent='Detecting chapters...';
+  const result=await fetchChaptersFromBackend(6);
+  if(runId!==ACTIVE_RUN_ID || token!==CHAPTER_RENDER_TOKEN) return;
+  if(result?.chapters?.length){
+    CHAPTERS=result.chapters;
+    renderChapterList(CHAPTERS);
+  }else{
+    CHAPTERS=[];
+    renderChapterList([]);
+  }
+}
+
+function timeToSec(timeStr){
+  const parts=timeStr.split(':');
+  if(parts.length!==3) return 0;
+  return parseInt(parts[0])*3600 + parseInt(parts[1])*60 + parseFloat(parts[2]);
+}
+function getVideoDurationEstimate(){
+  if(videoDuration>0) return videoDuration;
+  return /youtube/.test(document.getElementById('urlInp').value)?7200:1800;
+}
+
+function finalizeTranscriptRun(runId){
+  if(runId!==ACTIVE_RUN_ID) return;
+  SUMMARY_RENDER_TOKEN++;
+  TOPIC_RENDER_TOKEN++;
+  CHAPTER_RENDER_TOKEN++;
+  QA_RENDER_TOKEN++;
+  TRANSCRIPT = buildTranscript(getVideoDurationEstimate(), timestampMode, CAPTIONS);
+  document.getElementById('txCount').textContent=TRANSCRIPT.length+' segments';
+  setTranscriptSourceLabel(TRANSCRIPT_SOURCE||'none');
+  renderSourceLanguageDetection();
+  document.getElementById('inputMeta').textContent='Loaded';
+  document.getElementById('appBadge').innerHTML='<div class="dot"></div>Done';
+  document.getElementById('stProc').textContent='Processed ✓';
+  document.getElementById('sumTxt').textContent='Click "Generate Summary" to create AI summary.';
+  if(TRANSCRIPT.length){
+    document.getElementById('txPh').style.display='none';
+    document.getElementById('srchWrap').style.display='block';
+    document.getElementById('txList').innerHTML='';
+    renderTx(TRANSCRIPT,'');
+    autoDetectTopics(runId);
+    autoDetectChapters(runId);
+    QA_CHAT=[];
+    renderQaChat();
+    renderQaEvidence([]);
+    document.getElementById('qaJump').style.display='none';
+    toast('ok','✅ Real transcript loaded.');
+  }else{
+    document.getElementById('srchWrap').style.display='none';
+    document.getElementById('txList').style.display='none';
+    document.getElementById('txPh').style.display='flex';
+    document.getElementById('txPh').innerHTML='<div class="ico">⚠️</div><p>No real transcript found.<br>Try another video or language.</p>';
+    TOPICS=[];
+    renderTopicTags([]);
+    CHAPTERS=[];
+    renderChapterList([]);
+    QA_CHAT=[];
+    renderQaChat();
+    renderQaEvidence([]);
+    document.getElementById('qaJump').style.display='none';
+    toast('err','❌ Real transcript unavailable (YouTube/Groq failed).');
+  }
+}
+
+function finalizeTranscriptWith(runId, segments, source){
+  if(runId!==ACTIVE_RUN_ID) return;
+  CAPTIONS=(segments && segments.length)?segments:null;
+  TRANSCRIPT_SOURCE=source||'none';
+  finalizeTranscriptRun(runId);
+}
+
+function setTranscriptSourceLabel(source){
+  const label=document.getElementById('txSource');
+  const normalized=source||'none';
+  label.textContent=`source: ${normalized}`;
+}
+
+function detectSourceLanguageCode(text){
+  const t=String(text||'');
+  if(!t.trim()) return 'auto';
+
+  // Arabic-script (Urdu/Arabic share script). Use a few Urdu-specific letters to differentiate.
+  const hasArabic=/[\u0600-\u06FF\u0750-\u077F]/.test(t);
+  if(hasArabic){
+    // Urdu-specific-ish characters (not perfect, but good for UI suggestion).
+    if(/[پچگںٹڈڑےؤئژٖ]+/.test(t) || /آ/.test(t)) return 'ur';
+    return 'ar';
+  }
+  // CJK / other scripts.
+  if(/[\u4E00-\u9FFF]/.test(t)) return 'zh';
+  if(/[\u3040-\u30FF]/.test(t)) return 'ja';
+  if(/[\uAC00-\uD7AF]/.test(t)) return 'ko';
+  if(/[\u0400-\u04FF]/.test(t)) return 'ru';
+  // Latin-script fallback -> assume English for now.
+  if(/[A-Za-z]/.test(t)) return 'en';
+  return 'auto';
+}
+
+function renderSourceLanguageDetection(){
+  const labelEl=document.getElementById('srcDetectLabel');
+  if(!labelEl) return;
+  const text=(Array.isArray(TRANSCRIPT)?TRANSCRIPT.map(s=>s&&s.tx?s.tx:'').join(' '):'');
+  const code=detectSourceLanguageCode(text);
+  const labels={
+    en:'English',
+    ur:'Urdu',
+    ar:'Arabic',
+    zh:'Chinese',
+    hi:'Hindi',
+    fr:'French',
+    de:'German',
+    es:'Spanish',
+    tr:'Turkish',
+    pt:'Portuguese',
+    ru:'Russian',
+    ja:'Japanese',
+    ko:'Korean'
+  };
+  const label=labels[code]||'Unknown';
+  labelEl.textContent=`Detected: ${label}`;
+
+  // If user left transcript language as "auto", try to set the dropdown to the detected code.
+  const txSel=document.getElementById('txLang');
+  if(txSel && txSel.value==='auto' && code!=='auto' && labels[code]){
+    let hasOpt=false;
+    for(const opt of txSel.options){
+      if(opt.value===code){ hasOpt=true; break; }
+    }
+    if(hasOpt) txSel.value=code;
+  }
+}
+
+function isRtlLang(code){
+  const c=String(code||'').toLowerCase();
+  return c==='ur' || c==='ar' || c==='fa';
+}
+
+function applyTranslationDirectionAndFont(lang){
+  const box=document.getElementById('transBox');
+  if(!box) return;
+  const rtl=isRtlLang(lang);
+  // Reset classes
+  box.classList.remove('rtl','font-ar','font-ur');
+  if(rtl){
+    box.classList.add('rtl');
+    if(String(lang).toLowerCase()==='ur'){
+      box.classList.add('font-ur');
+    }else{
+      box.classList.add('font-ar');
+    }
+  }
+}
+
+function renderTranslationSideBySide(originalSegs, translatedSegs, lang){
+  const box=document.getElementById('transBox');
+  if(!box) return;
+  applyTranslationDirectionAndFont(lang);
+  const rtl=isRtlLang(lang);
+  box.style.direction='ltr'; // keep grid columns stable
+  box.innerHTML='';
+
+  const sideWrap=document.createElement('div');
+  sideWrap.className='trans-side';
+
+  const head=document.createElement('div');
+  head.className='trans-side-head';
+  const tsHead=document.createElement('div');
+  tsHead.className='h trans-side-ts';
+  tsHead.textContent='Time';
+  const origHead=document.createElement('div');
+  origHead.className='h trans-side-ts';
+  origHead.textContent='Original';
+  const transHead=document.createElement('div');
+  transHead.className='h trans-side-ts';
+  transHead.textContent='Translated';
+  head.appendChild(tsHead);
+  head.appendChild(origHead);
+  head.appendChild(transHead);
+  sideWrap.appendChild(head);
+
+  const maxRender=5000;
+  const renderCount=Math.min(translatedSegs.length, maxRender, originalSegs.length || translatedSegs.length);
+  for(let i=0;i<renderCount;i++){
+    const tr=translatedSegs[i];
+    const or=originalSegs[i] || null;
+
+    const row=document.createElement('div');
+    row.className='trans-side-row';
+
+    const ts=document.createElement('div');
+    ts.className='trans-side-ts';
+    ts.textContent=tr?.t || (Number.isFinite(tr?.s)?fmt(tr.s):'');
+
+    const left=document.createElement('div');
+    left.className='trans-side-text';
+    left.style.direction='ltr';
+    left.style.textAlign='left';
+    left.textContent=or?.tx || '';
+
+    const right=document.createElement('div');
+    right.className='trans-side-text translated';
+    right.style.direction=rtl?'rtl':'ltr';
+    right.style.textAlign=rtl?'right':'left';
+    right.textContent=tr?.tx || '';
+
+    row.appendChild(ts);
+    row.appendChild(left);
+    row.appendChild(right);
+    sideWrap.appendChild(row);
+  }
+
+  if(translatedSegs.length>renderCount){
+    const warn=document.createElement('div');
+    warn.className='topic-muted';
+    warn.style.marginTop='8px';
+    warn.textContent=`Showing ${renderCount} / ${translatedSegs.length} lines for performance.`;
+    sideWrap.appendChild(warn);
+  }
+  box.appendChild(sideWrap);
+}
+
+async function reloadTranscriptFromLanguage(){
+  if(!ready){
+    toast('err','⚠️ Process a video first');
+    return;
+  }
+  const url=document.getElementById('urlInp').value.trim();
+  SOURCE_LANG=document.getElementById('txLang').value;
+  toast('info','🎙️ Reloading transcript language...');
+  let backendResult=null;
+  if(url&&(url.includes('youtube')||url.includes('youtu.be'))){
+    const id=ytId(url);
+    if(!id){
+      toast('err','⚠️ Invalid YouTube URL');
+      return;
+    }
+    backendResult=await fetchTranscriptFromBackend(url,SOURCE_LANG);
+  }else if(CURRENT_FILE){
+    backendResult=await fetchUploadedTranscriptFromBackend(CURRENT_FILE,SOURCE_LANG);
+  }else{
+    toast('err','⚠️ Reload transcript requires a processed YouTube URL or uploaded file');
+    return;
+  }
+  CAPTIONS=backendResult?.segments||null;
+  TRANSCRIPT_SOURCE=backendResult?.source || 'none';
+  TRANSCRIPT = buildTranscript(getVideoDurationEstimate(), timestampMode, CAPTIONS);
+  finalizeTranscriptRun(ACTIVE_RUN_ID);
+}
+function setFileDuration(file){
+  CURRENT_FILE=file;
+  const vid=document.getElementById('fileVid');
+  vid.src=URL.createObjectURL(file);
+  vid.onloadedmetadata=()=>{
+    videoDuration=Math.floor(vid.duration);
+    durationReady=true;
+    document.getElementById('procBtn').disabled=false;
+    toast('ok',`⏱ Duration detected: ${fmt(videoDuration)}`);
+    URL.revokeObjectURL(vid.src);
+    if(ready){
+      TRANSCRIPT = buildTranscript(videoDuration, timestampMode, CAPTIONS);
+      renderTx(TRANSCRIPT,document.getElementById('srchInp').value.trim());
+      document.getElementById('txCount').textContent=TRANSCRIPT.length+' segments';
+    }
+  };
+}
+
+let ready=false,playing=false,aInterval=null,aProgress=0,sumMode='g';
+let SUMMARY_RENDER_TOKEN=0;
+let sumLengthMode='medium';
+let sumLanguageMode='en';
+let TOPIC_RENDER_TOKEN=0;
+let CHAPTER_RENDER_TOKEN=0;
+let QA_RENDER_TOKEN=0;
+let QA_CHAT=[];
+let AUDIO=null;
+let AUDIO_URL=null;
+let AUDIO_UI_TICK=null;
+let AUDIO_SYNC_SOURCE_SEGMENTS=[];
+let AUDIO_SYNC_SEGMENTS=[];
+let AUDIO_SYNC_TIMELINE=[];
+let AUDIO_ACTIVE_TS=null;
+let AUDIO_FOLLOW_SYNC=true;
+
+async function animateSummaryText(el, text, token){
+  const full=String(text||'').trim();
+  if(!full){
+    el.textContent='';
+    return;
+  }
+  el.textContent='';
+  const step=Math.max(2,Math.ceil(full.length/220));
+  for(let i=0;i<full.length;i+=step){
+    if(token!==SUMMARY_RENDER_TOKEN) return;
+    el.textContent=full.slice(0,i+step);
+    await new Promise(r=>setTimeout(r,14));
+  }
+  if(token===SUMMARY_RENDER_TOKEN) el.textContent=full;
+}
+
+/* cursor */
+const cur=document.getElementById('cursor'),ring=document.getElementById('cursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px'});
+function animR(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(animR)}animR();
+document.querySelectorAll('a,button,.ts-item,.tx-line').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cur.style.width='18px';cur.style.height='18px';ring.style.width='48px';ring.style.height='48px'});
+  el.addEventListener('mouseleave',()=>{cur.style.width='12px';cur.style.height='12px';ring.style.width='36px';ring.style.height='36px'});
+});
+
+document.getElementById('urlInp').addEventListener('input',function(){
+  document.getElementById('urlX').style.display=this.value?'block':'none';
+  document.getElementById('urlBox').style.borderColor='';
+  if(this.value){
+    document.getElementById('fileInp').value='';
+    document.getElementById('dz').innerHTML='<span class="dz-icon">📁</span><span>Click or drag & drop here</span><small>MP4 · MKV · AVI · MP3 · WAV — up to 500MB</small>';
+    document.getElementById('dz').style.borderColor='';
+    videoDuration=0;
+    durationReady=false;
+  }
+});
+function clearUrl(){
+  document.getElementById('urlInp').value='';
+  document.getElementById('urlX').style.display='none';
+}
+function onFile(inp){
+  if(inp.files[0]){
+    const f=inp.files[0];
+    document.getElementById('dz').innerHTML=`<span class="dz-icon">✅</span><span>${f.name}</span><small>${(f.size/1024/1024).toFixed(1)} MB</small>`;
+    document.getElementById('dz').style.borderColor='rgba(59,130,246,0.4)';
+    document.getElementById('urlInp').value='';
+    document.getElementById('urlX').style.display='none';
+    toast('ok','📁 File loaded: '+f.name);
+    durationReady=false;
+    videoDuration=0;
+    document.getElementById('procBtn').disabled=true;
+    setFileDuration(f);
+  }
+}
+
+function setVideoPlaceholder(){
+  const vc=document.getElementById('vc');
+  vc.innerHTML=`<div class="vc-ph" id="vcPh"><div class="play-orb">▶</div><p>Paste a URL or upload a<br>video to start</p></div><iframe id="ytFrame" allowfullscreen allow="autoplay; encrypted-media" style="display:none"></iframe>`;
+}
+
+function ensurePlayerShell(){
+  const vc=document.getElementById('vc');
+  if(!vc) return;
+  const hasPlaceholder=!!document.getElementById('vcPh');
+  const hasFrame=!!document.getElementById('ytFrame');
+  if(!hasPlaceholder || !hasFrame){
+    setVideoPlaceholder();
+  }
+}
+
+function startProc(){
+  const runId=++ACTIVE_RUN_ID;
+  const url=document.getElementById('urlInp').value.trim();
+  const file=document.getElementById('fileInp').files.length;
+  if(!url&&!file){
+    toast('err','⚠️ Please enter a YouTube URL or upload a file');
+    document.getElementById('urlBox').style.borderColor='rgba(239,68,68,0.4)';
+    setTimeout(()=>document.getElementById('urlBox').style.borderColor='',2000);
+    return;
+  }
+  if(file && !durationReady){
+    toast('err','⏳ Please wait for the uploaded video duration to finish loading');
+    return;
+  }
+  const isYouTubeInput=url&&(url.includes('youtube')||url.includes('youtu.be'));
+  if(isYouTubeInput && !ytId(url)){
+    toast('err','⚠️ Invalid YouTube URL. Please paste a full valid video link.');
+    document.getElementById('urlBox').style.borderColor='rgba(239,68,68,0.4)';
+    setTimeout(()=>document.getElementById('urlBox').style.borderColor='',2200);
+    return;
+  }
+  document.getElementById('procBtn').disabled=true;
+  document.getElementById('procBtn').textContent='⚙️ Processing...';
+  document.getElementById('procBtn').style.background='';
+  document.getElementById('txPh').style.display='none';
+  document.getElementById('procState').classList.add('show');
+  document.getElementById('srchWrap').style.display='none';
+  document.getElementById('txList').style.display='none';
+  document.getElementById('appBadge').innerHTML='<div class="dot"></div>Processing';
+  document.getElementById('stProc').textContent='Processing...';
+  // Reset per-run state immediately so previous runs cannot leak UI state.
+  CAPTIONS=null;
+  TRANSCRIPT=[];
+  TRANSCRIPT_SOURCE='none';
+  TOPICS=[];
+  CHAPTERS=[];
+  ready=false;
+  document.getElementById('txList').innerHTML='';
+  document.getElementById('txCount').textContent='—';
+  document.getElementById('topicMeta').textContent='Topics appear after processing transcript';
+  document.getElementById('topicList').innerHTML='';
+  document.getElementById('chapterMeta').textContent='Chapters appear after processing transcript';
+  document.getElementById('chapterList').innerHTML='';
+  setTranscriptSourceLabel('processing');
+  setTranscriptSourceLabel('fetching');
+
+  try{
+    const isFile = file>0;
+    SOURCE_LANG=document.getElementById('txLang').value;
+    ensurePlayerShell();
+    if(isFile){
+      const ph=document.getElementById('vcPh');
+      if(ph) ph.style.display='none';
+      const preview=document.getElementById('ytFrame');
+      if(preview) preview.style.display='none';
+      const vc=document.getElementById('vc');
+      if(CURRENT_FILE){
+        const videoUrl=URL.createObjectURL(CURRENT_FILE);
+        vc.innerHTML=`<video id="fileVidPreview" style="width:100%;height:100%;object-fit:contain;background:#000;border-radius:12px" controls><source src="${videoUrl}" type="${CURRENT_FILE.type}"></video>`;
+      }
+      const f=document.getElementById('fileInp').files[0];
+      document.getElementById('vidMeta').textContent=f.name+' ('+fmt(videoDuration)+')';
+    }else if(url&&(url.includes('youtube')||url.includes('youtu.be'))){
+      const id=ytId(url);
+      if(id){
+        ensurePlayerShell();
+        const ph=document.getElementById('vcPh');
+        if(ph) ph.style.display='none';
+        const frame=document.getElementById('ytFrame');
+        if(frame){
+          frame.src=`https://www.youtube.com/embed/${id}?autoplay=0&rel=0&modestbranding=1&playsinline=1`;
+          frame.style.display='block';
+        }
+        document.getElementById('vidMeta').textContent='YouTube Video';
+      }
+    }
+  }catch(e){
+    console.log('Player setup failed:',e.message);
+    document.getElementById('txPh').style.display='flex';
+    document.getElementById('procState').classList.remove('show');
+    document.getElementById('procBtn').disabled=false;
+    document.getElementById('procBtn').textContent='⚡ Process Video';
+    toast('warn','⚠️ Player preview failed, transcript remains available.');
+  }
+
+  // Instant UX: do not block behind artificial progress.
+  document.getElementById('procTxt').textContent='Preparing transcript...';
+  document.getElementById('procSub').textContent='Rendering immediate segments';
+  document.getElementById('progFill').style.width='100%';
+  setTimeout(()=>doneProc(runId),0);
+}
+function ytId(rawUrl){
+  const urlText=(rawUrl||'').trim();
+  if(!urlText) return null;
+  try{
+    const u=new URL(urlText);
+    const host=u.hostname.replace(/^www\./,'');
+
+    if(host==='youtu.be'){
+      const shortId=u.pathname.split('/').filter(Boolean)[0];
+      return /^[a-zA-Z0-9_-]{11}$/.test(shortId||'')?shortId:null;
+    }
+
+    if(host==='youtube.com' || host==='m.youtube.com' || host==='music.youtube.com'){
+      const v=u.searchParams.get('v');
+      if(v && /^[a-zA-Z0-9_-]{11}$/.test(v)) return v;
+      const parts=u.pathname.split('/').filter(Boolean);
+      const keyIdx=parts.findIndex(p=>p==='embed' || p==='shorts' || p==='live');
+      if(keyIdx!==-1 && parts[keyIdx+1] && /^[a-zA-Z0-9_-]{11}$/.test(parts[keyIdx+1])){
+        return parts[keyIdx+1];
+      }
+    }
+  }catch(e){
+    // Fallback regex below for loosely pasted text.
+  }
+  const m=urlText.match(/(?:v=|youtu\.be\/|embed\/|shorts\/|live\/)([a-zA-Z0-9_-]{11})/);
+  return m?m[1]:null;
+}
+
+async function doneProc(runId){
+  if(runId!==ACTIVE_RUN_ID) return;
+  ready=true;
+  document.getElementById('procState').classList.remove('show');
+  document.getElementById('procBtn').disabled=false;
+  document.getElementById('procBtn').innerHTML='✅ Processed';
+  document.getElementById('procBtn').style.background='linear-gradient(135deg,#16A34A,#15803D)';
+  document.getElementById('progFill').style.width='100%';
+
+  const url=document.getElementById('urlInp').value.trim();
+  CAPTIONS=null;
+  TRANSCRIPT_SOURCE='none';
+
+  try{
+    if(url&&(url.includes('youtube')||url.includes('youtu.be'))){
+      toast('info','🎙️ Fetching real transcript...');
+      const backendResult=await fetchTranscriptFromBackend(url,SOURCE_LANG);
+      if(runId!==ACTIVE_RUN_ID) return;
+      if(backendResult?.segments?.length){
+        finalizeTranscriptWith(runId,backendResult.segments,backendResult.source||'backend');
+        toast('ok',backendResult.source==='youtube_captions'?'✅ YouTube captions loaded':'✅ Transcript loaded');
+      }else{
+        CAPTIONS=null;
+        TRANSCRIPT_SOURCE='none';
+      }
+    }else if(CURRENT_FILE){
+      toast('info','🎙️ Generating transcript with Groq...');
+      const backendResult=await fetchUploadedTranscriptFromBackend(CURRENT_FILE,SOURCE_LANG);
+      if(runId!==ACTIVE_RUN_ID) return;
+      if(backendResult?.segments?.length){
+        finalizeTranscriptWith(runId,backendResult.segments,backendResult.source||'groq_whisper');
+        toast('ok','✅ Uploaded file transcribed with Groq');
+      }else{
+        CAPTIONS=null;
+        TRANSCRIPT_SOURCE='none';
+        if(backendResult?.error){
+          toast('err','❌ '+String(backendResult.error).slice(0,180));
+        }
+      }
+    }
+  }catch(e){
+    console.log('Transcript pipeline error:',e.message);
+    TRANSCRIPT_SOURCE='none';
+    CAPTIONS=null;
+    toast('err','❌ Could not fetch real transcript.');
+  }finally{
+    finalizeTranscriptRun(runId);
+  }
+}
+function setTimestampMode(mode){
+  timestampMode = mode;
+  if(ready){
+    TRANSCRIPT = CAPTIONS && CAPTIONS.length ? CAPTIONS : [];
+    document.getElementById('txCount').textContent = TRANSCRIPT.length+' segments';
+    if(TRANSCRIPT.length){
+      renderTx(TRANSCRIPT, document.getElementById('srchInp').value.trim());
+      toast('ok', mode==='full' ? '✅ Unlimited timestamps enabled' : '✅ Compact timestamps enabled');
+    }else{
+      document.getElementById('txList').style.display='none';
+      document.getElementById('txPh').style.display='flex';
+    }
+  }
+}
+function renderTx(data,kw){
+  const c=document.getElementById('txList');
+  c.innerHTML='';
+  data.forEach(l=>{
+    const d=document.createElement('div');
+    d.className='tx-line';
+    d.dataset.s=String(Number.isFinite(l.s)?l.s:0);
+    d.onclick=()=>jumpTo(l.s);
+    let tx=esc(l.tx);
+    if(kw){const re=new RegExp('('+escRe(kw)+')','gi');tx=tx.replace(re,'<mark>$1</mark>');if(re.test(l.tx))d.classList.add('hi')}
+    d.innerHTML=`<span class="tx-ts">${l.t}</span><span class="tx-txt">${tx}</span>`;
+    c.appendChild(d);
+  });
+  c.style.display='flex';
+}
+
+function clearAudioTranscriptHighlight(){
+  document.querySelectorAll('.tx-line.audio-now').forEach(el=>el.classList.remove('audio-now'));
+  AUDIO_ACTIVE_TS=null;
+}
+
+function highlightTranscriptByTimestamp(ts){
+  if(!Number.isFinite(ts)) return;
+  if(AUDIO_ACTIVE_TS===ts) return;
+  const list=document.getElementById('txList');
+  if(!list || list.style.display==='none') return;
+  const target=list.querySelector(`.tx-line[data-s="${ts}"]`);
+  if(!target) return;
+  clearAudioTranscriptHighlight();
+  target.classList.add('audio-now');
+  AUDIO_ACTIVE_TS=ts;
+  if(AUDIO_FOLLOW_SYNC){
+    target.scrollIntoView({behavior:'smooth', block:'center'});
+  }
+}
+
+function toggleFollowSync(){
+  AUDIO_FOLLOW_SYNC=!AUDIO_FOLLOW_SYNC;
+  const btn=document.getElementById('followSyncBtn');
+  if(!btn) return;
+  btn.classList.toggle('on',AUDIO_FOLLOW_SYNC);
+  btn.textContent=AUDIO_FOLLOW_SYNC?'ON':'OFF';
+}
+
+function _audioSegmentWeight(seg){
+  const text=String(seg?.translated_tx || seg?.tx || '').trim();
+  if(!text) return 1;
+  const letters=(text.match(/[\p{L}\p{N}]/gu)||[]).length;
+  const spaces=(text.match(/\s/g)||[]).length;
+  const punct=(text.match(/[.,!?;:،۔]/g)||[]).length;
+  // Slightly heavier punctuation weight to account for TTS pauses.
+  return Math.max(1, letters + (spaces*0.35) + (punct*2.2));
+}
+
+function buildAudioSyncTimeline(durationSec){
+  const segs=Array.isArray(AUDIO_SYNC_SEGMENTS)?AUDIO_SYNC_SEGMENTS:[];
+  AUDIO_SYNC_TIMELINE=[];
+  if(!segs.length || !Number.isFinite(durationSec) || durationSec<=0) return;
+
+  const weights=segs.map(_audioSegmentWeight);
+  const totalWeight=weights.reduce((a,b)=>a+b,0) || 1;
+  let cursor=0;
+  for(let i=0;i<segs.length;i++){
+    // Keep a tiny minimum span per segment so very short lines can still be highlighted.
+    const span=Math.max(0.07, (weights[i]/totalWeight)*durationSec);
+    const start=cursor;
+    const end=(i===segs.length-1)?durationSec:(cursor+span);
+    AUDIO_SYNC_TIMELINE.push({
+      start,
+      end,
+      s: Number.isFinite(segs[i]?.s)?segs[i].s:0,
+    });
+    cursor=end;
+  }
+}
+
+function syncTranscriptWithAudio(currentSec,durationSec){
+  if(!Number.isFinite(currentSec) || !Number.isFinite(durationSec) || durationSec<=0) return;
+  if(AUDIO_SYNC_TIMELINE.length){
+    let activeTs=AUDIO_SYNC_TIMELINE[0].s;
+    for(let i=0;i<AUDIO_SYNC_TIMELINE.length;i++){
+      const row=AUDIO_SYNC_TIMELINE[i];
+      if(currentSec>=row.start && currentSec<=row.end){
+        activeTs=row.s;
+        break;
+      }
+      if(currentSec>row.end) activeTs=row.s;
+    }
+    highlightTranscriptByTimestamp(activeTs);
+    return;
+  }
+
+  // Fallback ratio-based sync if weighted timeline is unavailable.
+  const segs=Array.isArray(AUDIO_SYNC_SOURCE_SEGMENTS)?AUDIO_SYNC_SOURCE_SEGMENTS:[];
+  if(segs.length){
+    const lastTs=Math.max(1, Number.isFinite(segs[segs.length-1]?.s)?segs[segs.length-1].s:1);
+    const pseudoTime=(currentSec/durationSec)*lastTs;
+    let activeTs=Number.isFinite(segs[0]?.s)?segs[0].s:0;
+    for(let i=0;i<segs.length;i++){
+      const s=Number.isFinite(segs[i]?.s)?segs[i].s:0;
+      if(s<=pseudoTime) activeTs=s;
+      else break;
+    }
+    highlightTranscriptByTimestamp(activeTs);
+  }
+}
+function doSearch(kw){
+  document.getElementById('srchX').style.display=kw?'block':'none';
+  if(!ready)return;
+  if(!kw.trim()){
+    renderTx(TRANSCRIPT,'');
+    document.getElementById('tsList').style.display='none';
+    document.getElementById('tsEmpty').style.display='block';
+    document.getElementById('tsCount').textContent='0 results';
+    return;
+  }
+  const hits=TRANSCRIPT.filter(l=>l.tx.toLowerCase().includes(kw.toLowerCase()));
+  renderTx(TRANSCRIPT,kw);
+  const list=document.getElementById('tsList'),empty=document.getElementById('tsEmpty');
+  if(hits.length){
+    list.innerHTML=hits.map(l=>{
+      const h=esc(l.tx).replace(new RegExp('('+escRe(kw)+')','gi'),'<mark>$1</mark>');
+      return`<div class="ts-item" onclick="jumpTo(${l.s})"><span class="jump-t">${l.t}</span><span class="jump-c">${h}</span><span class="jump-arr">↗</span></div>`;
+    }).join('');
+    list.style.display='flex';empty.style.display='none';
+    document.getElementById('tsCount').textContent=hits.length+' result'+(hits.length!==1?'s':'');
+    toast('ok',`🔍 "${kw}" found at ${hits.length} timestamp${hits.length!==1?'s':''}`);
+  }else{
+    list.style.display='none';empty.style.display='block';
+    empty.textContent=`No results for "${kw}"`;
+    document.getElementById('tsCount').textContent='0 results';
+  }
+}
+function clearSearch(){
+  document.getElementById('srchInp').value='';
+  document.getElementById('srchX').style.display='none';
+  if(ready){renderTx(TRANSCRIPT,'');document.getElementById('tsList').style.display='none';document.getElementById('tsEmpty').style.display='block';document.getElementById('tsEmpty').textContent='Search a keyword above to see results here';document.getElementById('tsCount').textContent='0 results'}
+}
+function jumpTo(sec){
+  const fr=document.getElementById('ytFrame');
+  if(fr && fr.style.display!=='none'){
+    // YouTube video
+    const base=fr.src.split('?')[0];
+    fr.src=base+`?start=${sec}&autoplay=1`;
+  }else{
+    // Uploaded file video
+    const vid=document.getElementById('fileVidPreview');
+    if(vid){
+      vid.currentTime=sec;
+      vid.play();
+    }
+  }
+  toast('ok','⏱ Jumping to '+fmt(sec));
+  const lines=document.querySelectorAll('.tx-line');
+  TRANSCRIPT.forEach((l,i)=>{if(l.s===sec&&lines[i]){lines[i].scrollIntoView({behavior:'smooth',block:'nearest'});lines[i].style.background='rgba(59,130,246,0.1)';setTimeout(()=>{if(lines[i])lines[i].style.background=''},1400)}});
+}
+async function doTranslate(){
+  if(!ready){toast('err','⚠️ Process a video first');return}
+  const lang=document.getElementById('tgtLang').value;
+  const box=document.getElementById('transBox');
+  const btn=document.getElementById('transBtn');
+  box.style.color='var(--dim)';
+  box.textContent='Translating...';
+  if(btn){
+    btn.disabled=true;
+    btn.textContent='Translating...';
+  }
+
+  applyTranslationDirectionAndFont(lang);
+  box.style.direction='ltr';
+  box.style.fontStyle='normal';
+
+  try{
+    const resp=await fetch(`${API_BASE}/translate`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        segments: (TRANSCRIPT||[]).filter(s=>s && s.tx).map(s=>({t:s.t,s:s.s,tx:s.tx})),
+        target_language: lang
+      })
+    });
+    if(!resp.ok){
+      let detail='Translation failed.';
+      try{
+        const err=await resp.json();
+        detail=err?.detail || err?.message || detail;
+      }catch(e){
+        // ignore json parse error
+      }
+      throw new Error(detail);
+    }
+    const data=await resp.json();
+    const segs=Array.isArray(data?.translated_segments)?data.translated_segments:[];
+    const originalSegments=(TRANSCRIPT||[]).filter(s=>s && s.tx).map(s=>({t:s.t,s:s.s,tx:s.tx}));
+
+    if(segs.length){
+      LAST_TRANSLATION={lang, translated_segments: segs, original_segments: originalSegments};
+      renderTranslationSideBySide(originalSegments, segs, lang);
+    }else{
+      const text=String(data?.translated_text || '').trim();
+      box.textContent=text || 'Translation unavailable.';
+    }
+    box.style.color='var(--muted)';
+    toast('ok','🌍 Translated!');
+  }catch(e){
+    box.textContent='Could not translate right now.';
+    box.style.color='var(--muted)';
+    toast('err','❌ '+String(e?.message || e).slice(0,180));
+  }finally{
+    if(btn){
+      btn.disabled=false;
+      btn.textContent='🌐 Translate Now';
+    }
+  }
+}
+function genAudio(){
+  if(!ready){toast('err','⚠️ Process a video first');return}
+  if(!LAST_TRANSLATION || !LAST_TRANSLATION.translated_segments || !LAST_TRANSLATION.translated_segments.length){
+    toast('err','⚠️ Translate first, then generate audio');
+    return;
+  }
+  initAudio();
+
+  const lang=(LAST_TRANSLATION.lang || document.getElementById('tgtLang').value || 'en');
+  const voice=(document.getElementById('voiceSel')?.value || 'neutral');
+  const text=LAST_TRANSLATION.translated_segments.map(s=>s && s.tx ? s.tx : '').filter(Boolean).join(' ');
+  AUDIO_SYNC_SOURCE_SEGMENTS=(LAST_TRANSLATION?.original_segments||[])
+    .filter(s=>s && Number.isFinite(s.s))
+    .map(s=>({s:s.s,t:s.t||fmt(s.s),tx:s.tx||''}))
+    .sort((a,b)=>a.s-b.s);
+  AUDIO_SYNC_SEGMENTS=(LAST_TRANSLATION?.translated_segments||[]).map((tr,idx)=>{
+    const or=(LAST_TRANSLATION?.original_segments||[])[idx]||{};
+    return {
+      s:Number.isFinite(or?.s)?or.s:(Number.isFinite(tr?.s)?tr.s:0),
+      t:or?.t || tr?.t || fmt(Number.isFinite(or?.s)?or.s:0),
+      tx:or?.tx || '',
+      translated_tx:tr?.tx || '',
+    };
+  }).filter(row=>Number.isFinite(row.s));
+  AUDIO_SYNC_TIMELINE=[];
+  if(!text.trim()){
+    toast('err','⚠️ No translated text found');
+    return;
+  }
+
+  const btns=document.querySelectorAll('button[onclick="genAudio()"]');
+  const dlBtn=document.getElementById('downloadAudioBtn');
+  if(dlBtn) dlBtn.style.display='none';
+  btns.forEach(b=>{try{b.disabled=true;b.textContent='Generating...'}catch(e){}});
+  document.getElementById('aCur').textContent='0:00';
+  document.getElementById('aDur').textContent='0:00';
+  document.getElementById('aFill').style.width='0%';
+
+  fetch(`${API_BASE}/tts`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({text, language:lang, voice})
+  }).then(async resp=>{
+    if(!resp.ok){
+      let detail='Audio generation failed.';
+      try{
+        const err=await resp.json();
+        detail=err?.detail || err?.message || detail;
+      }catch(e){}
+      throw new Error(detail);
+    }
+    return await resp.blob();
+  }).then(blob=>{
+    if(AUDIO_URL) URL.revokeObjectURL(AUDIO_URL);
+    AUDIO_URL=URL.createObjectURL(blob);
+    AUDIO.src=AUDIO_URL;
+    AUDIO.currentTime=0;
+    if(dlBtn) dlBtn.style.display='block';
+    clearAudioTranscriptHighlight();
+    if(AUDIO_SYNC_SOURCE_SEGMENTS.length){
+      highlightTranscriptByTimestamp(AUDIO_SYNC_SOURCE_SEGMENTS[0].s);
+    }
+    // Keep existing speed selection
+    const onBtn=document.querySelector('.spd-btn.on');
+    const spdText=(onBtn?.textContent||'1×').replace('×','');
+    const spd=parseFloat(spdText)||1;
+    AUDIO.playbackRate=spd;
+    toast('ok','🎙 Audio ready — press play!');
+  }).catch(e=>{
+    toast('err','❌ '+String(e?.message||e).slice(0,180));
+  }).finally(()=>{
+    btns.forEach(b=>{try{b.disabled=false;b.textContent='🎙 Generate Audio'}catch(e){}});
+  });
+}
+function downloadAudio(){
+  if(!AUDIO_URL){
+    toast('err','⚠️ Generate audio first');
+    return;
+  }
+  const lang=(LAST_TRANSLATION?.lang || document.getElementById('tgtLang')?.value || 'audio').toLowerCase();
+  const voice=(document.getElementById('voiceSel')?.value || 'neutral').toLowerCase();
+  const stamp=new Date().toISOString().replace(/[:.]/g,'-');
+  const filename=`speechfindr-${lang}-${voice}-${stamp}.mp3`;
+  const a=document.createElement('a');
+  a.href=AUDIO_URL;
+  a.download=filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+function togglePlay(){
+  initAudio();
+  if(!AUDIO || !AUDIO.src){
+    toast('err','⚠️ Generate audio first');
+    return;
+  }
+  if(!playing){
+    AUDIO.play().then(()=>{
+      playing=true;
+      document.getElementById('playBtn').textContent='⏸';
+      if(!AUDIO_UI_TICK) tickAudioUi();
+    }).catch(e=>{
+      toast('err','❌ '+String(e?.message||e).slice(0,160));
+    });
+  }else{
+    AUDIO.pause();
+    playing=false;
+    document.getElementById('playBtn').textContent='▶';
+  }
+}
+function setSpd(s,btn){
+  document.querySelectorAll('.spd-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  initAudio();
+  if(AUDIO) AUDIO.playbackRate=Number(s)||1;
+}
+function setSumTab(t,btn){sumMode=t;document.querySelectorAll('[data-summode]').forEach(b=>b.classList.remove('on'));btn.classList.add('on')}
+function setSumLength(mode,btn){
+  sumLengthMode=mode;
+  document.querySelectorAll('[data-sumlen]').forEach(b=>b.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+}
+function setSumLanguage(lang,btn){
+  sumLanguageMode=lang;
+  document.querySelectorAll('[data-sumlang]').forEach(b=>b.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+}
+function genSum(){
+  if(!ready){toast('err','⚠️ Process a video first');return}
+  const el=document.getElementById('sumTxt');
+  SUMMARY_RENDER_TOKEN++;
+  const myToken=SUMMARY_RENDER_TOKEN;
+  el.style.color='var(--dim)';el.textContent='Generating AI summary...';
+  const kw=document.getElementById('srchInp').value.trim();
+  const mode=sumMode==='k'?'keyword':'general';
+  fetchSummaryFromBackend(mode,kw).then(async result=>{
+    if(myToken!==SUMMARY_RENDER_TOKEN) return;
+    if(result?.summary){
+      await animateSummaryText(el,result.summary,myToken);
+      if(myToken!==SUMMARY_RENDER_TOKEN) return;
+      el.style.color='var(--muted)';
+      toast('ok',mode==='keyword'?'✅ Keyword summary ready!':'✅ General summary ready!');
+    }else{
+      el.textContent='Could not generate summary right now.';
+      el.style.color='var(--muted)';
+      toast('err','❌ '+String(result?.error||'Summary generation failed.').slice(0,180));
+    }
+  });
+}
+function resetAll(){
+  SUMMARY_RENDER_TOKEN++;
+  TOPIC_RENDER_TOKEN++;
+  CHAPTER_RENDER_TOKEN++;
+  QA_RENDER_TOKEN++;
+  ready=false;
+  sumMode='g';
+  sumLengthMode='medium';
+  sumLanguageMode='en';
+  document.querySelectorAll('[data-summode]').forEach(b=>b.classList.remove('on'));
+  const modeBtns=document.querySelectorAll('[data-summode]');
+  if(modeBtns[0]) modeBtns[0].classList.add('on');
+  document.querySelectorAll('[data-sumlen]').forEach(b=>b.classList.remove('on'));
+  const lenBtns=document.querySelectorAll('[data-sumlen]');
+  if(lenBtns[1]) lenBtns[1].classList.add('on');
+  document.querySelectorAll('[data-sumlang]').forEach(b=>b.classList.remove('on'));
+  const langBtns=document.querySelectorAll('[data-sumlang]');
+  if(langBtns[0]) langBtns[0].classList.add('on');
+  videoDuration=0;
+  durationReady=false;
+  CAPTIONS=null;
+  TOPICS=[];
+  CHAPTERS=[];
+  LAST_QA_TS=0;
+  QA_CHAT=[];
+  document.getElementById('urlInp').value='';
+  document.getElementById('urlX').style.display='none';
+  document.getElementById('urlBox').style.borderColor='';
+  document.getElementById('fileInp').value='';
+  document.getElementById('dz').innerHTML='<span class="dz-icon">📁</span><span>Click or drag & drop here</span><small>MP4 · MKV · AVI · MP3 · WAV — up to 500MB</small>';
+  document.getElementById('dz').style.borderColor='';
+  document.getElementById('procBtn').disabled=false;
+  document.getElementById('procBtn').innerHTML='⚡ Process Video';
+  document.getElementById('procBtn').style.background='';
+  document.getElementById('procState').classList.remove('show');
+  document.getElementById('txPh').style.display='flex';
+  document.getElementById('txList').style.display='none';
+  document.getElementById('txList').innerHTML='';
+  document.getElementById('srchWrap').style.display='none';
+  document.getElementById('srchInp').value='';
+  document.getElementById('txLang').value='auto';
+  SOURCE_LANG='auto';
+  TRANSCRIPT=[];
+  document.getElementById('tsList').style.display='none';
+  document.getElementById('tsEmpty').style.display='block';
+  document.getElementById('tsEmpty').textContent='Search a keyword above to see results here';
+  document.getElementById('tsCount').textContent='0 results';
+  document.getElementById('txCount').textContent='—';
+  setTranscriptSourceLabel('—');
+  document.getElementById('inputMeta').textContent='No video';
+  document.getElementById('vidMeta').textContent='No video loaded';
+  setVideoPlaceholder();
+  const ytFrame=document.getElementById('ytFrame');
+  ytFrame.src='';
+  ytFrame.style.display='none';
+  document.getElementById('transBox').textContent='Translation appears here after processing...';
+  LAST_TRANSLATION=null;
+  const det=document.getElementById('srcDetectLabel');
+  if(det) det.textContent='Detected: —';
+  document.getElementById('sumTxt').textContent='Process a video first to generate a summary...';
+  document.getElementById('topicMeta').textContent='Topics appear after processing transcript';
+  document.getElementById('topicList').innerHTML='';
+  document.getElementById('chapterMeta').textContent='Chapters appear after processing transcript';
+  document.getElementById('chapterList').innerHTML='';
+  document.getElementById('qaInp').value='';
+  renderQaChat();
+  renderQaEvidence([]);
+  document.getElementById('qaJump').style.display='none';
+  document.getElementById('progFill').style.width='0%';
+  document.getElementById('appBadge').innerHTML='<div class="dot"></div>Ready';
+  document.getElementById('stProc').textContent='Idle';
+  // Reset audio
+  initAudio();
+  try{AUDIO.pause();}catch(e){}
+  playing=false;
+  document.getElementById('playBtn').textContent='▶';
+  document.getElementById('aFill').style.width='0%';
+  document.getElementById('aCur').textContent='0:00';
+  document.getElementById('aDur').textContent='0:00';
+  if(AUDIO_URL){try{URL.revokeObjectURL(AUDIO_URL)}catch(e){}}
+  AUDIO_URL=null;
+  const dlBtn=document.getElementById('downloadAudioBtn');
+  if(dlBtn) dlBtn.style.display='none';
+  AUDIO_SYNC_SOURCE_SEGMENTS=[];
+  AUDIO_SYNC_SEGMENTS=[];
+  AUDIO_SYNC_TIMELINE=[];
+  AUDIO_FOLLOW_SYNC=true;
+  clearAudioTranscriptHighlight();
+  if(AUDIO){AUDIO.src='';}
+  const fsBtn=document.getElementById('followSyncBtn');
+  if(fsBtn){
+    fsBtn.classList.add('on');
+    fsBtn.textContent='ON';
+  }
+  toast('ok','↺ App reset');
+}
+function fmt(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function escRe(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}
+
+function initAudio(){
+  if(AUDIO) return;
+  AUDIO=new Audio();
+  AUDIO.preload='auto';
+
+  AUDIO.addEventListener('loadedmetadata',()=>{
+    const dur=Number.isFinite(AUDIO.duration)?Math.floor(AUDIO.duration):0;
+    document.getElementById('aDur').textContent=fmt(dur||0);
+    buildAudioSyncTimeline(Number.isFinite(AUDIO.duration)?AUDIO.duration:0);
+  });
+  AUDIO.addEventListener('ended',()=>{
+    playing=false;
+    document.getElementById('playBtn').textContent='▶';
+    if(AUDIO_UI_TICK) cancelAnimationFrame(AUDIO_UI_TICK);
+    AUDIO_UI_TICK=null;
+    document.getElementById('aFill').style.width='0%';
+    document.getElementById('aCur').textContent='0:00';
+    clearAudioTranscriptHighlight();
+  });
+}
+
+function tickAudioUi(){
+  if(!AUDIO) return;
+  const cur=Number.isFinite(AUDIO.currentTime)?AUDIO.currentTime:0;
+  const dur=Number.isFinite(AUDIO.duration)?AUDIO.duration:0;
+  document.getElementById('aCur').textContent=fmt(Math.floor(cur));
+  const pct=(dur>0)?Math.min(100,(cur/dur)*100):0;
+  document.getElementById('aFill').style.width=pct.toFixed(2)+'%';
+  syncTranscriptWithAudio(cur,dur);
+  if(playing){
+    AUDIO_UI_TICK=requestAnimationFrame(tickAudioUi);
+  }else{
+    AUDIO_UI_TICK=null;
+  }
+}
+function toast(type,msg){
+  const c=document.getElementById('toasts');
+  const el=document.createElement('div');
+  el.className='toast '+type;el.textContent=msg;c.appendChild(el);
+  setTimeout(()=>{el.style.opacity='0';el.style.transform='translateY(8px)';el.style.transition='all .3s';setTimeout(()=>el.remove(),300)},3000);
+}
+
+/* drag & drop */
+const dz=document.getElementById('dz');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.style.borderColor='rgba(59,130,246,0.5)';dz.style.background='rgba(59,130,246,0.06)'});
+dz.addEventListener('dragleave',()=>{dz.style.borderColor='';dz.style.background=''});
+dz.addEventListener('drop',e=>{
+  e.preventDefault();dz.style.borderColor='';dz.style.background='';
+  const f=e.dataTransfer.files[0];
+  if(f){
+    const inp=document.getElementById('fileInp');
+    const dt=new DataTransfer();
+    dt.items.add(f);
+    inp.files=dt.files;
+    onFile(inp);
+    toast('ok','📁 Dropped: '+f.name);
+  }
+});
+
+setTimeout(()=>toast('ok','👋 Paste a YouTube URL and click Process!'),800);
+setTranscriptSourceLabel('generated');
+
+// Apply RTL + font instantly when user changes language.
+document.getElementById('tgtLang')?.addEventListener('change',function(){
+  const lang=this.value;
+  applyTranslationDirectionAndFont(lang);
+  // If translation already exists, just re-render to update RTL/font.
+  if(LAST_TRANSLATION && LAST_TRANSLATION.translated_segments){
+    renderTranslationSideBySide(
+      LAST_TRANSLATION.original_segments||[],
+      LAST_TRANSLATION.translated_segments||[],
+      lang
+    );
+  }
+});
+
+window.addEventListener('error',e=>{
+  console.log('Unhandled JS error:',e.message);
+});
+</script>
+</body>
+</html>

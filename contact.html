@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>SpeechFindr — Contact Us</title>
+<link rel="stylesheet" href="style.css"/>
+<style>
+.contact-shell{min-height:100vh;padding-top:68px;position:relative;overflow:hidden}
+
+/* bg */
+.bg-blobs{position:absolute;inset:0;z-index:0;pointer-events:none}
+.blob{
+  position:absolute;border-radius:50%;filter:blur(100px);
+  animation:float 8s ease-in-out infinite;
+}
+.blob1{width:500px;height:500px;background:rgba(59,130,246,0.07);top:-80px;left:-100px;animation-delay:0s}
+.blob2{width:400px;height:400px;background:rgba(6,182,212,0.06);bottom:-60px;right:-80px;animation-delay:3s}
+.blob3{width:300px;height:300px;background:rgba(14,165,233,0.05);top:40%;left:40%;animation-delay:1.5s}
+@keyframes float{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-20px) scale(1.04)}}
+
+.grid-bg{
+  position:absolute;inset:0;z-index:0;
+  background-image:linear-gradient(rgba(255,255,255,0.012) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.012) 1px,transparent 1px);
+  background-size:56px 56px;
+  mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 20%,transparent 100%);
+}
+
+/* hero */
+.c-hero{
+  padding:56px 6% 0;text-align:center;
+  position:relative;z-index:1;
+}
+.c-hero h1{font-size:clamp(2.8rem,5.5vw,4.4rem);font-weight:800;letter-spacing:-.04em;margin-bottom:14px}
+.c-hero p{color:var(--muted);font-size:1.02rem;max-width:480px;margin:0 auto;line-height:1.75}
+
+/* grid */
+.c-grid{
+  display:grid;grid-template-columns:1.15fr .85fr;
+  gap:28px;padding:48px 6% 80px;
+  position:relative;z-index:1;max-width:1080px;margin:0 auto;
+}
+
+/* ── FORM ── */
+.form-card{
+  background:rgba(7,15,32,0.85);
+  border:1px solid var(--border);
+  border-radius:24px;padding:44px;
+  position:relative;overflow:hidden;
+  backdrop-filter:blur(16px);
+}
+.form-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent 0%,var(--blue) 30%,var(--cyan) 70%,transparent 100%);
+}
+.form-card h2{font-size:1.7rem;font-weight:800;letter-spacing:-.03em;margin-bottom:8px}
+.form-card>.sub-desc{color:var(--muted);font-size:.875rem;margin-bottom:32px;line-height:1.6}
+
+.f-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.f-group{margin-bottom:16px}
+.f-group label{
+  display:block;font-size:.68rem;font-weight:700;
+  letter-spacing:.09em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:7px;
+}
+.f-ctrl{
+  width:100%;padding:12px 16px;
+  background:var(--ink2);border:1px solid var(--border);
+  border-radius:10px;color:var(--white);
+  font-family:var(--ff-body);font-size:.875rem;
+  outline:none;transition:all .22s var(--ease);line-height:1.5;
+}
+.f-ctrl::placeholder{color:var(--dim)}
+.f-ctrl:focus{
+  border-color:rgba(59,130,246,0.5);
+  box-shadow:0 0 0 3px rgba(59,130,246,0.1);
+  background:rgba(59,130,246,0.03);
+}
+textarea.f-ctrl{resize:vertical;min-height:126px}
+select.f-ctrl{
+  appearance:none;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%233E5166' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;padding-right:32px;
+}
+.sub-btn{
+  width:100%;padding:14px;margin-top:4px;
+  background:linear-gradient(135deg,var(--blue),var(--sky));
+  color:#fff;border:none;border-radius:12px;
+  font-family:var(--ff-body);font-size:.95rem;font-weight:700;
+  cursor:pointer;transition:all .25s var(--ease);
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  box-shadow:var(--glow-btn);position:relative;overflow:hidden;
+}
+.sub-btn::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent);transform:translateX(-100%);transition:transform .6s}
+.sub-btn:hover::after{transform:translateX(100%)}
+.sub-btn:hover{transform:translateY(-2px);box-shadow:0 10px 36px rgba(59,130,246,0.5)}
+
+.success-panel{display:none;flex-direction:column;align-items:center;gap:18px;padding:52px 24px;text-align:center}
+.s-check{
+  width:76px;height:76px;border-radius:50%;
+  background:rgba(59,130,246,0.1);border:2px solid rgba(59,130,246,0.3);
+  display:flex;align-items:center;justify-content:center;font-size:2.2rem;
+}
+.success-panel h3{font-size:1.5rem;font-weight:800}
+.success-panel p{color:var(--muted);font-size:.9rem}
+
+/* ── INFO SIDE ── */
+.info-col{display:flex;flex-direction:column;gap:16px}
+
+.info-card{
+  background:rgba(7,15,32,0.8);
+  border:1px solid var(--border);
+  border-radius:18px;padding:24px;
+  backdrop-filter:blur(12px);
+  transition:border-color .3s;
+}
+.info-card:hover{border-color:rgba(59,130,246,0.22)}
+.info-card h4{
+  font-family:var(--ff-head);font-size:.9rem;font-weight:800;
+  color:var(--white);margin-bottom:18px;
+  display:flex;align-items:center;gap:9px;
+}
+.c-item{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:9px 0;border-bottom:1px solid var(--border);
+}
+.c-item:last-child{border-bottom:none}
+.c-ico{
+  width:34px;height:34px;border-radius:9px;flex-shrink:0;
+  background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.15);
+  display:flex;align-items:center;justify-content:center;font-size:.85rem;
+}
+.c-ico.c{background:rgba(6,182,212,0.08);border-color:rgba(6,182,212,0.15)}
+.c-det strong{display:block;font-size:.78rem;font-weight:700;color:var(--white);margin-bottom:2px}
+.c-det span{font-size:.8rem;color:var(--muted)}
+.c-det a{font-size:.8rem;color:var(--blue-lt);text-decoration:none}
+.c-det a:hover{text-decoration:underline}
+
+/* team mini */
+.team-mini{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.tm-card{
+  padding:12px 14px;border-radius:10px;
+  background:var(--ink2);border:1px solid var(--border);
+  transition:border-color .2s;
+}
+.tm-card:hover{border-color:rgba(59,130,246,0.3)}
+.tm-card strong{display:block;font-size:.8rem;font-weight:700;color:var(--white)}
+.tm-card span{font-size:.72rem;color:var(--muted)}
+
+/* social cards */
+.soc-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.soc-card{
+  display:flex;align-items:center;gap:10px;padding:12px 14px;
+  border-radius:10px;background:var(--ink2);border:1px solid var(--border);
+  text-decoration:none;color:var(--muted);font-size:.82rem;font-weight:600;
+  transition:all .22s;
+}
+.soc-card:hover{border-color:rgba(59,130,246,0.35);color:var(--white);background:rgba(59,130,246,0.06)}
+.soc-ico{width:28px;height:28px;border-radius:7px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:.8rem}
+
+/* location */
+.loc-card{
+  background:rgba(7,15,32,0.8);border:1px solid var(--border);
+  border-radius:18px;overflow:hidden;backdrop-filter:blur(12px);
+}
+.loc-map{
+  height:160px;background:var(--ink2);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  color:var(--dim);font-size:.83rem;gap:8px;
+  border-bottom:1px solid var(--border);
+}
+.loc-map::before{content:'📍';font-size:2rem}
+.loc-info{padding:16px 20px;font-size:.82rem;color:var(--muted);line-height:1.7}
+.loc-info strong{color:var(--white)}
+
+/* toast */
+.toasts{position:fixed;bottom:22px;right:22px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{padding:11px 16px;background:rgba(7,15,32,0.95);border:1px solid rgba(59,130,246,0.3);backdrop-filter:blur(24px);border-radius:10px;font-size:.82rem;color:var(--white);display:flex;align-items:center;gap:9px;min-width:240px;animation:tst .3s var(--ease)}
+.toast.err{border-color:rgba(239,68,68,0.3)}
+@keyframes tst{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+@media(max-width:900px){
+  .c-grid{grid-template-columns:1fr}
+  .f-row{grid-template-columns:1fr}
+  .form-card{padding:28px}
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAVBAR -->
+<nav class="nav stuck" id="nav">
+  <a href="index.html" class="logo"><div class="logo-mark">🎤</div>Speech<span>Findr</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="project.html">Project</a></li>
+    <li><a href="contact.html" class="active">Contact</a></li>
+  </ul>
+  <a href="project.html" class="nav-cta">Launch App →</a>
+</nav>
+
+<div class="contact-shell">
+  <div class="bg-blobs"><div class="blob blob1"></div><div class="blob blob2"></div><div class="blob blob3"></div></div>
+  <div class="grid-bg"></div>
+
+  <!-- Hero -->
+  <div class="c-hero reveal">
+    <div class="label-pill" style="justify-content:center;margin-bottom:18px">Get In Touch</div>
+    <h1>Contact <span class="grad">Our Team</span></h1>
+    <p>Questions about our FYP, want to collaborate, or just want to say hi? We'd love to hear from you.</p>
+  </div>
+
+  <!-- Grid -->
+  <div class="c-grid">
+
+    <!-- FORM -->
+    <div class="form-card reveal">
+      <h2>Send a Message</h2>
+      <p class="sub-desc">Fill out the form and we'll get back to you within 24 hours.</p>
+
+      <div id="theForm">
+        <div class="f-row">
+          <div class="f-group"><label>First Name</label><input type="text" class="f-ctrl" placeholder="John" id="fName"/></div>
+          <div class="f-group"><label>Last Name</label><input type="text" class="f-ctrl" placeholder="Doe" id="lName"/></div>
+        </div>
+        <div class="f-group"><label>Email Address</label><input type="email" class="f-ctrl" placeholder="john@example.com" id="fEmail"/></div>
+        <div class="f-group">
+          <label>Subject</label>
+          <select class="f-ctrl" id="fSubj">
+            <option value="">Select a subject...</option>
+            <option>FYP Inquiry</option><option>Collaboration</option>
+            <option>Technical Question</option><option>Supervisor Contact</option><option>Other</option>
+          </select>
+        </div>
+        <div class="f-group"><label>Message</label><textarea class="f-ctrl" placeholder="Write your message here..." id="fMsg"></textarea></div>
+        <button class="sub-btn" onclick="submitForm()">📨 Send Message</button>
+      </div>
+
+      <div class="success-panel" id="successPanel">
+        <div class="s-check">✅</div>
+        <h3>Message Sent!</h3>
+        <p>Thanks for reaching out. We'll reply within 24 hours.</p>
+        <button onclick="resetForm()" class="btn btn-ghost" style="margin-top:6px;font-size:.85rem;padding:10px 22px">Send Another →</button>
+      </div>
+    </div>
+
+    <!-- INFO -->
+    <div class="info-col">
+
+      <div class="info-card reveal d1">
+        <h4>🏛 Project Info</h4>
+        <div class="c-item">
+          <div class="c-ico">🎓</div>
+          <div class="c-det"><strong>University</strong><span>Iqra University, Karachi</span></div>
+        </div>
+        <div class="c-item">
+          <div class="c-ico c">📚</div>
+          <div class="c-det"><strong>Department</strong><span>Computer Science — B.S. IT</span></div>
+        </div>
+        <div class="c-item">
+          <div class="c-ico">👨‍🏫</div>
+          <div class="c-det"><strong>Supervisor</strong><span>[Supervisor Name]</span></div>
+        </div>
+        <div class="c-item">
+          <div class="c-ico c">📧</div>
+          <div class="c-det"><strong>Email</strong><a href="mailto:speechfindr@iqra.edu.pk">speechfindr@iqra.edu.pk</a></div>
+        </div>
+        <div class="c-item">
+          <div class="c-ico">🗓</div>
+          <div class="c-det"><strong>Year</strong><span>Final Year Project 2024–2025</span></div>
+        </div>
+      </div>
+
+      <div class="info-card reveal d2">
+        <h4>👥 Team Members</h4>
+        <div class="team-mini">
+          <div class="tm-card"><strong>Anas Tanveer</strong><span>Lead · Backend</span></div>
+          <div class="tm-card"><strong>Member Two</strong><span>AI · NLP</span></div>
+          <div class="tm-card"><strong>Member Three</strong><span>Frontend</span></div>
+          <div class="tm-card"><strong>Member Four</strong><span>Research</span></div>
+        </div>
+      </div>
+
+      <div class="info-card reveal d3">
+        <h4>🔗 Connect</h4>
+        <div class="soc-grid">
+          <a href="https://github.com/anastanveer653" target="_blank" class="soc-card"><div class="soc-ico">GH</div>GitHub</a>
+          <a href="https://linkedin.com/in/anastanveer-it/" target="_blank" class="soc-card"><div class="soc-ico">LI</div>LinkedIn</a>
+          <a href="mailto:speechfindr@iqra.edu.pk" class="soc-card"><div class="soc-ico">✉️</div>Email</a>
+          <a href="index.html" class="soc-card"><div class="soc-ico">🌐</div>Website</a>
+        </div>
+      </div>
+
+      <div class="loc-card reveal d4">
+        <div class="loc-map">Iqra University, Karachi</div>
+        <div class="loc-info"><strong>Iqra University</strong><br>Defence View, Shaheed-e-Millat Road,<br>Karachi, Pakistan</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="ft-grid">
+    <div class="ft-brand">
+      <a href="index.html" class="logo" style="text-decoration:none"><div class="logo-mark">🎤</div>Speech<span>Findr</span></a>
+      <p>AI-powered speech recognition — find exactly what you need inside any video, instantly and accurately.</p>
+    </div>
+    <div class="ft-col"><h5>Pages</h5><a href="index.html">Home</a><a href="project.html">Project</a><a href="contact.html">Contact</a></div>
+    <div class="ft-col"><h5>Features</h5><a href="project.html">Speech-to-Text</a><a href="project.html">Search</a><a href="project.html">Translation</a></div>
+    <div class="ft-col"><h5>Project</h5><a href="https://github.com/anastanveer653">GitHub</a><a href="#">Iqra University</a><a href="contact.html">Team</a></div>
+  </div>
+  <div class="ft-bot">
+    <p>© 2025 SpeechFindr — FYP, Iqra University Karachi</p>
+    <div class="social-row"><a href="https://github.com/anastanveer653">GH</a><a href="https://linkedin.com/in/anastanveer-it/">LI</a></div>
+  </div>
+</footer>
+
+<div class="toasts" id="toasts"></div>
+
+<script>
+const cur=document.getElementById('cursor'),ring=document.getElementById('cursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px'});
+function aR(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(aR)}aR();
+
+const reveals=document.querySelectorAll('.reveal');
+const revealObs=new IntersectionObserver(es=>{
+  es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('on')});
+},{threshold:.08});
+reveals.forEach(el=>revealObs.observe(el));
+
+function submitForm(){
+  const first=document.getElementById('fName').value.trim();
+  const email=document.getElementById('fEmail').value.trim();
+  const msg=document.getElementById('fMsg').value.trim();
+  let ok=true;
+  document.querySelectorAll('.f-ctrl').forEach(c=>c.style.borderColor='');
+  if(!first){document.getElementById('fName').style.borderColor='rgba(239,68,68,0.5)';ok=false}
+  if(!email||!email.includes('@')){document.getElementById('fEmail').style.borderColor='rgba(239,68,68,0.5)';ok=false}
+  if(!msg){document.getElementById('fMsg').style.borderColor='rgba(239,68,68,0.5)';ok=false}
+  if(!ok)return;
+  document.getElementById('theForm').style.display='none';
+  document.getElementById('successPanel').style.display='flex';
+}
+function resetForm(){
+  document.getElementById('theForm').style.display='block';
+  document.getElementById('successPanel').style.display='none';
+  document.querySelectorAll('.f-ctrl').forEach(c=>{c.value='';c.style.borderColor=''});
+}
+document.querySelectorAll('.f-ctrl').forEach(c=>c.addEventListener('focus',()=>{c.style.borderColor=''}));
+</script>
+</body>
+</html>
